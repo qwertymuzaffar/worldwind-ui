@@ -1,5 +1,7 @@
 # worldwind-ui
 
+[![CI](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/ci.yml)
+
 UI libraries for [NASA WorldWind](https://worldwind.arc.nasa.gov/web/), the open-source WebGL
 virtual globe. One framework-agnostic core, thin idiomatic adapters per framework.
 
