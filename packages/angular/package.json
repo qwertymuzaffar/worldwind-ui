@@ -1,0 +1,54 @@
+{
+  "name": "ngx-worldwind",
+  "version": "0.1.0",
+  "description": "Angular standalone components and directives for NASA WorldWind: declarative globe, layers, shapes, camera control and ready-made UI widgets",
+  "keywords": [
+    "angular",
+    "worldwind",
+    "nasa",
+    "globe",
+    "3d",
+    "gis",
+    "webgl",
+    "map"
+  ],
+  "license": "MIT",
+  "author": "Muzaffar Qosimov <qwertymuzaffar@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qwertymuzaffar/worldwind-ui.git",
+    "directory": "packages/angular"
+  },
+  "homepage": "https://github.com/qwertymuzaffar/worldwind-ui/tree/main/packages/angular#readme",
+  "bugs": "https://github.com/qwertymuzaffar/worldwind-ui/issues",
+  "scripts": {
+    "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json && node -e \"require('fs').copyFileSync('../kit/styles/worldwind-ui.css','dist/styles.css')\"",
+    "typecheck": "ngc -p tsconfig.lib.json --noEmit",
+    "prepublishOnly": "node -e \"console.error('ngx-worldwind is published from packages/angular/dist (npm run release does this). Refusing to publish the sources.');process.exit(1)\""
+  },
+  "peerDependencies": {
+    "@angular/common": "^22.0.0",
+    "@angular/core": "^22.0.0",
+    "@nasaworldwind/worldwind": ">=0.9.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.0",
+    "worldwind-kit": "^0.1.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "devDependencies": {
+    "@angular/common": "^22.1.5",
+    "@angular/compiler": "^22.1.5",
+    "@angular/compiler-cli": "^22.1.5",
+    "@angular/core": "^22.1.5",
+    "@angular/platform-browser": "^22.1.5",
+    "ng-packagr": "^22.1.1",
+    "rxjs": "^7.8.2"
+  },
+  "exports": {
+    "./styles.css": "./styles.css"
+  }
+}

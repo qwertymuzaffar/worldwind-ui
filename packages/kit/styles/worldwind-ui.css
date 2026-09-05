@@ -1,0 +1,234 @@
+/* worldwind-ui shared widget styles. Override the custom properties to theme. */
+:root {
+  --wwui-font: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --wwui-font-size: 13px;
+  --wwui-bg: rgba(15, 23, 42, 0.82);
+  --wwui-fg: #f1f5f9;
+  --wwui-muted: #94a3b8;
+  --wwui-accent: #38bdf8;
+  --wwui-border: rgba(255, 255, 255, 0.14);
+  --wwui-hover: rgba(255, 255, 255, 0.08);
+  --wwui-radius: 10px;
+  --wwui-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --wwui-gap: 12px;
+  --wwui-control-size: 34px;
+}
+
+.wwui-globe {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  background: #000;
+}
+
+.wwui-globe > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.wwui-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--wwui-font);
+  font-size: var(--wwui-font-size);
+  color: var(--wwui-fg);
+  line-height: 1.4;
+}
+
+.wwui-overlay > * {
+  pointer-events: auto;
+}
+
+.wwui-panel {
+  position: absolute;
+  max-width: calc(100% - 2 * var(--wwui-gap));
+  padding: 10px 12px;
+  background: var(--wwui-bg);
+  border: 1px solid var(--wwui-border);
+  border-radius: var(--wwui-radius);
+  box-shadow: var(--wwui-shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-sizing: border-box;
+}
+
+.wwui-panel--top-left { top: var(--wwui-gap); left: var(--wwui-gap); }
+.wwui-panel--top-right { top: var(--wwui-gap); right: var(--wwui-gap); }
+.wwui-panel--bottom-left { bottom: var(--wwui-gap); left: var(--wwui-gap); }
+.wwui-panel--bottom-right { bottom: var(--wwui-gap); right: var(--wwui-gap); }
+
+.wwui-panel__title {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wwui-muted);
+}
+
+/* Layer switcher */
+.wwui-layer-switcher {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  min-width: 190px;
+}
+
+.wwui-layer-switcher__item {
+  display: grid;
+  gap: 4px;
+}
+
+.wwui-layer-switcher__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wwui-layer-switcher__label input[type='checkbox'] {
+  margin: 0;
+  accent-color: var(--wwui-accent);
+}
+
+.wwui-layer-switcher__opacity {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--wwui-accent);
+}
+
+/* Buttons and toolbars */
+.wwui-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+}
+
+.wwui-toolbar--horizontal {
+  flex-direction: row;
+}
+
+.wwui-button {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--wwui-control-size);
+  height: var(--wwui-control-size);
+  padding: 0;
+  border: 1px solid var(--wwui-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--wwui-fg);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.wwui-button:hover {
+  background: var(--wwui-hover);
+}
+
+.wwui-button:focus-visible {
+  outline: 2px solid var(--wwui-accent);
+  outline-offset: 1px;
+}
+
+.wwui-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Go-to box */
+.wwui-goto {
+  display: grid;
+  gap: 6px;
+  min-width: 220px;
+}
+
+.wwui-goto__row {
+  display: flex;
+  gap: 6px;
+}
+
+.wwui-goto__input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--wwui-border);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--wwui-fg);
+  font: inherit;
+}
+
+.wwui-goto__input:focus-visible {
+  outline: 2px solid var(--wwui-accent);
+  outline-offset: 1px;
+}
+
+.wwui-goto__submit {
+  width: auto;
+  padding: 0 12px;
+}
+
+.wwui-goto__results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.wwui-goto__result {
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  width: 100%;
+}
+
+.wwui-goto__result:hover,
+.wwui-goto__result:focus-visible {
+  background: var(--wwui-hover);
+  outline: none;
+}
+
+.wwui-goto__status {
+  color: var(--wwui-muted);
+  font-size: 12px;
+}
+
+/* Coordinates readout */
+.wwui-coords {
+  display: flex;
+  gap: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.wwui-coords__label {
+  color: var(--wwui-muted);
+  margin-right: 4px;
+}
+
+.wwui-globe__canvas {
+  position: absolute;
+  inset: 0;
+}

@@ -1,0 +1,67 @@
+{
+  "name": "worldwind-kit",
+  "version": "0.1.0",
+  "description": "Framework-agnostic TypeScript toolkit for NASA WorldWind: typed globe controller, layers, camera, picking, shapes and a test double",
+  "keywords": [
+    "worldwind",
+    "nasa",
+    "globe",
+    "3d",
+    "gis",
+    "webgl",
+    "map",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Muzaffar Qosimov <qwertymuzaffar@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qwertymuzaffar/worldwind-ui.git",
+    "directory": "packages/kit"
+  },
+  "homepage": "https://github.com/qwertymuzaffar/worldwind-ui/tree/main/packages/kit#readme",
+  "bugs": "https://github.com/qwertymuzaffar/worldwind-ui/issues",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "import": "./dist/testing.js",
+      "require": "./dist/testing.cjs"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "import": "./dist/vite.js",
+      "require": "./dist/vite.cjs"
+    },
+    "./styles.css": "./styles/worldwind-ui.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "styles",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@nasaworldwind/worldwind": ">=0.9.0"
+  },
+  "devDependencies": {
+    "@nasaworldwind/worldwind": "^0.11.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
