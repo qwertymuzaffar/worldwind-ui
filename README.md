@@ -103,6 +103,7 @@ packages/kit       worldwind-kit      (tsup, vitest)
 packages/react     react-worldwind    (tsup, vitest + Testing Library)
 packages/angular   ngx-worldwind      (ng-packagr, partial Ivy)
 examples/react-demo                   (Vite playground)
+examples/angular-demo                 (Angular CLI playground, zoneless)
 ```
 
 Requires Node 22.22 or newer (Angular 22 and Vitest 5 need it; `.nvmrc` is set).
@@ -114,7 +115,11 @@ npm test             # kit + react suites
 npm run lint && npm run typecheck
 npm run pack:check   # what would be published
 npm run dev -w react-demo
+npm run dev -w angular-demo
 ```
+
+`.npmrc` sets `legacy-peer-deps=true`: `@angular/build` declares an optional peer dependency on
+Vitest 4 and npm 10 crashes on the conflict with the Vitest 5 used here instead of skipping it.
 
 Releases use [Changesets](.changeset/README.md): `npm run changeset`, then `npm run version-packages`
 and `npm run release`, or let the release workflow open the version PR.

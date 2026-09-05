@@ -23,7 +23,8 @@
     "pack:check": "npm pack --dry-run -w worldwind-kit -w react-worldwind && cd packages/angular/dist && npm pack --dry-run",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "npm run build && changeset publish"
+    "release": "npm run build && changeset publish",
+    "build:examples": "npm run build -w react-demo -w angular-demo"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.2",

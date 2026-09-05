@@ -85,6 +85,11 @@ The Angular CLI's esbuild builder bundles WorldWind correctly. If you build with
 example through Analog), add `worldwindVitePlugin()` from `worldwind-kit/vite`, or load
 WorldWind from a CDN with `[loadOptions]="{ loader: scriptLoader() }"`.
 
+## Demo
+
+`examples/angular-demo` in the repository is a zoneless Angular CLI app using every component above.
+Run it with `npm run dev -w angular-demo` from the repository root.
+
 ## Requirements
 
 Angular 22, `@nasaworldwind/worldwind` 0.9 or newer. The library is compiled in partial Ivy mode.

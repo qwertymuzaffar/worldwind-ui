@@ -1,0 +1,12 @@
+/* In an app, use `@import 'ngx-worldwind/styles.css';` instead of the kit path in angular.json. */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+}
+
+app-root {
+  display: block;
+  height: 100%;
+}
