@@ -1,5 +1,13 @@
 # ngx-worldwind
 
+## 0.1.2
+
+### Patch Changes
+
+- ef5abca: Link the package pages to the live demos at https://qwertymuzaffar.github.io/worldwind-ui/.
+- Updated dependencies [ef5abca]
+  - worldwind-kit@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes
