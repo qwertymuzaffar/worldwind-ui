@@ -90,6 +90,25 @@ WorldWind from a CDN with `[loadOptions]="{ loader: scriptLoader() }"`.
 `examples/angular-demo` in the repository is a zoneless Angular CLI app using every component above.
 Run it with `npm run dev -w angular-demo` from the repository root.
 
+## Testing
+
+The components run under Vitest with Angular's `TestBed` (JIT through Analog's Vite plugin) and
+the kit's fake WorldWind, so no WebGL or browser is needed:
+
+```ts
+import { TestBed } from '@angular/core/testing';
+import { installFakeWorldWind } from 'worldwind-kit/testing';
+
+const fake = installFakeWorldWind();
+const fixture = TestBed.createComponent(HostWithGlobe);
+fixture.autoDetectChanges();
+await fixture.whenStable();
+fake.windows[0].simulateFrame();   // runs camera subscribers
+fake.recognizers[0].simulate(1, 1); // fires click handlers
+```
+
+See `packages/angular/test` in the repository for the setup file and examples.
+
 ## Requirements
 
 Angular 22, `@nasaworldwind/worldwind` 0.9 or newer. The library is compiled in partial Ivy mode.

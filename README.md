@@ -101,7 +101,7 @@ any other bundler's loader or plugin API. Webpack and the Vite dev server need n
 ```
 packages/kit       worldwind-kit      (tsup, vitest)
 packages/react     react-worldwind    (tsup, vitest + Testing Library)
-packages/angular   ngx-worldwind      (ng-packagr, partial Ivy)
+packages/angular   ngx-worldwind      (ng-packagr, partial Ivy; vitest + TestBed via Analog)
 examples/react-demo                   (Vite playground)
 examples/angular-demo                 (Angular CLI playground, zoneless)
 ```
@@ -111,7 +111,7 @@ Requires Node 22.22 or newer (Angular 22 and Vitest 5 need it; `.nvmrc` is set).
 ```sh
 npm install
 npm run build        # kit -> react -> angular
-npm test             # kit + react suites
+npm test             # kit + react + angular suites
 npm run lint && npm run typecheck
 npm run pack:check   # what would be published
 npm run dev -w react-demo
