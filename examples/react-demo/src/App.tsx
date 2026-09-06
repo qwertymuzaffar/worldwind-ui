@@ -12,12 +12,38 @@ import {
   Panel,
   Path,
   Placemark,
+  Popup,
   ProjectionSwitcher,
   RenderableLayer,
   SurfaceCircle,
   formatLatLon,
+  type GlobeController,
+  type LatLonAlt,
   type PickEvent,
 } from 'react-worldwind';
+
+declare global {
+  interface Window {
+    /** Exposed for the browser tests and for poking around in devtools. */
+    worldwindDemo?: { globe: GlobeController };
+  }
+}
+
+interface PopupState {
+  position: LatLonAlt;
+  title: string;
+  lines: string[];
+}
+
+/** Turns whatever was clicked (a city, an airport feature) into popup content. */
+function describePick(event: PickEvent): PopupState | null {
+  const data = (event.top?.object as { userProperties?: unknown } | undefined)?.userProperties as Record<string, unknown> | undefined;
+  const position = event.top?.position ?? event.position;
+  if (!data || !position || typeof data.name !== 'string') return null;
+  const lines = [formatLatLon(position, { precision: 3 })];
+  if ('busy' in data) lines.push(data.busy ? 'Busy airport' : 'Quiet airport');
+  return { position, title: data.name, lines };
+}
 
 const CITIES = [
   { name: 'New York', latitude: 40.7128, longitude: -74.006, pushpin: 'red' as const },
@@ -46,6 +72,7 @@ const AIRPORTS = {
 export function App() {
   const [selected, setSelected] = useState<(typeof CITIES)[number] | null>(null);
   const [lastClick, setLastClick] = useState<PickEvent | null>(null);
+  const [popup, setPopup] = useState<PopupState | null>(null);
   const target = selected ?? { latitude: 20, longitude: 10 };
 
   return (
@@ -54,7 +81,13 @@ export function App() {
       layers={['blue-marble-landsat', 'atmosphere', 'star-field', 'compass']}
       view={{ latitude: 20, longitude: 10, range: 1.6e7 }}
       fallback={<div className="wwui-panel wwui-panel--top-left">Loading NASA WorldWind…</div>}
-      onClick={setLastClick}
+      onClick={(event) => {
+        setLastClick(event);
+        setPopup(describePick(event));
+      }}
+      onReady={(globe) => {
+        window.worldwindDemo = { globe };
+      }}
     >
       <Layer kind="osm" enabled={false} />
       <Camera latitude={target.latitude} longitude={target.longitude} range={selected ? 1.5e6 : 1.6e7} animate={2000} />
@@ -68,6 +101,7 @@ export function App() {
             pushpin={city.pushpin}
             highlight={{ imageScale: 1.4 }}
             highlightOnHover
+            userData={{ name: city.name }}
             onClick={() => setSelected(city)}
           />
         ))}
@@ -84,6 +118,14 @@ export function App() {
             : { polygon: { fill: 'rgba(251, 191, 36, 0.15)', stroke: '#fbbf24', strokeWidth: 2 } }
         }
       />
+
+      {popup ? (
+        <Popup position={popup.position} title={popup.title} onClose={() => setPopup(null)}>
+          {popup.lines.map((line) => (
+            <div key={line}>{line}</div>
+          ))}
+        </Popup>
+      ) : null}
 
       <GoToBox position="top-left" />
       <MeasureTool position="top-left" className="wwui-panel--below-goto" />

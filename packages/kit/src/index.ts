@@ -14,6 +14,7 @@ export * from './kml';
 export * from './layers';
 export * from './measure';
 export * from './picking';
+export * from './screen';
 export * from './shape-events';
 export * from './shapes';
 export * from './worldwind';

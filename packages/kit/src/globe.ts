@@ -10,6 +10,8 @@ import {
   type WmsLayerOptions,
 } from './layers';
 import { PickDispatcher, pickAt, type PickEventType, type PickHandler, type PickOptions, type PickResult } from './picking';
+import type { LatLonAlt } from './geo';
+import { toScreen, trackScreenPosition, type ScreenPoint } from './screen';
 import { loadWorldWind, type LoadWorldWindOptions } from './worldwind';
 import type { WWLayer, WWRenderableLayer, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
@@ -179,6 +181,16 @@ export class GlobeController {
    */
   on(type: PickEventType, handler: PickHandler): Unsubscribe {
     return this.picks.on(type, handler);
+  }
+
+  /** Where a position lands on the canvas after the last frame, or null if it cannot be projected. */
+  toScreen(position: LatLonAlt): ScreenPoint | null {
+    return toScreen(this.worldWind, this.wwd, position);
+  }
+
+  /** Follows a position across frames; the listener fires whenever its screen point changes. */
+  trackPosition(position: LatLonAlt, listener: (point: ScreenPoint | null) => void): Unsubscribe {
+    return this.track(trackScreenPosition(this.worldWind, this.wwd, position, listener));
   }
 
   /** Raw DOM events on the canvas (`wheel`, `mousemove`, `touchstart`, ...). */

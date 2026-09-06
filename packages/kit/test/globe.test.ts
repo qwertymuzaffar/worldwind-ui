@@ -127,3 +127,18 @@ describe('GlobeController.onProjectionChange', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('GlobeController screen projection', () => {
+  it('exposes toScreen and trackPosition, cleaned up on destroy', () => {
+    const fake = createFakeWorldWind();
+    const globe = new GlobeController(fake, document.createElement('div'));
+    const wwd = fake.windows[0]!;
+    expect(globe.toScreen({ latitude: 0, longitude: 0 })).toMatchObject({ x: 400, y: 300, visible: true });
+    const listener = vi.fn();
+    globe.trackPosition({ latitude: 0, longitude: 0 }, listener);
+    wwd.simulateFrame();
+    expect(listener).toHaveBeenCalledTimes(1);
+    globe.destroy();
+    expect(wwd.redrawCallbacks).toHaveLength(0);
+  });
+});

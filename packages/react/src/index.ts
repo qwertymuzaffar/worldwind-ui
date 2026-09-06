@@ -70,3 +70,4 @@ export { GoToBox, type GoToBoxProps } from './ui/GoToBox';
 export { CoordinatesReadout, type CoordinatesReadoutProps } from './ui/CoordinatesReadout';
 export { MeasureTool, type MeasureToolProps } from './ui/MeasureTool';
 export { ProjectionSwitcher, type ProjectionSwitcherProps } from './ui/ProjectionSwitcher';
+export { Popup, type PopupAnchor, type PopupProps } from './ui/Popup';

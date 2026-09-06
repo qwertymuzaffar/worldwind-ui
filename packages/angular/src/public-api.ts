@@ -34,6 +34,7 @@ export { WwGoToBoxComponent } from './lib/ui/goto-box.component';
 export { WwCoordinatesComponent } from './lib/ui/coordinates.component';
 export { WwMeasureToolComponent } from './lib/ui/measure-tool.component';
 export { WwProjectionSwitcherComponent } from './lib/ui/projection-switcher.component';
+export { WwPopupComponent, type WwPopupAnchor } from './lib/ui/popup.component';
 
 import { WwCameraDirective } from './lib/camera.directive';
 import { WwGlobeComponent } from './lib/globe.component';
@@ -60,6 +61,7 @@ import { WwGoToBoxComponent } from './lib/ui/goto-box.component';
 import { WwLayerSwitcherComponent } from './lib/ui/layer-switcher.component';
 import { WwMeasureToolComponent } from './lib/ui/measure-tool.component';
 import { WwProjectionSwitcherComponent } from './lib/ui/projection-switcher.component';
+import { WwPopupComponent } from './lib/ui/popup.component';
 import { WwNavigationControlsComponent } from './lib/ui/navigation-controls.component';
 import { WwPanelComponent } from './lib/ui/panel.component';
 
@@ -90,4 +92,5 @@ export const WORLDWIND_COMPONENTS = [
   WwCoordinatesComponent,
   WwMeasureToolComponent,
   WwProjectionSwitcherComponent,
+  WwPopupComponent,
 ] as const;

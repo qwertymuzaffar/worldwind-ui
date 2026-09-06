@@ -63,6 +63,24 @@ Inside a `<RenderableLayer>`: `<Placemark>`, `<Path>`, `<Polygon>`, `<SurfacePol
 
 `<LayerSwitcher>`, `<NavigationControls>`, `<GoToBox>`, `<CoordinatesReadout>`, `<MeasureTool>` and `<ProjectionSwitcher>` each take a `position` corner and render into a `<Panel>`. They need `react-worldwind/styles.css`, and can be themed through the `--wwui-*` custom properties.
 
+## Popups
+
+`<Popup>` anchors ordinary React content to a geographic position and follows the globe as it moves, hiding when the point goes behind the globe. Combine it with a click or hover pick:
+
+```tsx
+const [popup, setPopup] = useState<PickEvent | null>(null);
+
+<Globe onClick={(event) => setPopup(event.top ? event : null)}>
+  {popup?.top?.position && (
+    <Popup position={popup.top.position} title={String(popup.top.object.userProperties?.name)} onClose={() => setPopup(null)}>
+      {formatLatLon(popup.top.position)}
+    </Popup>
+  )}
+</Globe>
+```
+
+`anchor` (`bottom`, `top`, `left`, `right`, `center`) chooses the side, `offset` nudges in pixels. For a tooltip, drive the position from `useHoverPick()` instead.
+
 ## Hooks
 
 `useGlobe`, `useWorldWind`, `useCamera`, `useCameraState`, `useLayers`, `useLayer`, `useGlobeEvent`, `useHoverPick`, `useProjection`, `useMeasureTool`, `useRenderable` and `useShapeEvents`. See the [API reference](/api/react-worldwind/).

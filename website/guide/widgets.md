@@ -9,6 +9,7 @@ Every widget renders into a floating panel in one corner of the globe (`position
   <figure><img src="/widgets/coordinates-readout.png" alt="Coordinates readout" width="413" /><figcaption>CoordinatesReadout</figcaption></figure>
   <figure><img src="/widgets/measure-tool.png" alt="Measure tool" width="220" /><figcaption>MeasureTool</figcaption></figure>
   <figure><img src="/widgets/projection-switcher.png" alt="Projection switcher" width="498" /><figcaption>ProjectionSwitcher</figcaption></figure>
+  <figure><img src="/widgets/popup.png" alt="Popup anchored to a pin" width="240" /><figcaption>Popup</figcaption></figure>
 </div>
 
 ## LayerSwitcher
@@ -70,6 +71,19 @@ Press Measure, click the globe to add points: the line and vertex markers live i
 | `line` | cyan, 2 px | `ShapeStyle` for the line |
 
 The hook `useMeasureTool()` (React) or the `MeasureTool` class (kit) gives you the same state without the panel.
+
+## Popup
+
+Not a panel but an overlay anchored to a geographic position: it follows the globe every frame and hides while the point is behind the globe or off screen. Content is ordinary markup; `title` (React) or `heading` (Angular) adds a bold first line and `onClose` / `closable` a close button. The demos open one when you click a city pin or an airport.
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `position` | | `{ latitude, longitude, altitude? }` |
+| `anchor` | `'bottom'` | Side of the point the popup sits on (`bottom` means above the point) |
+| `offset` | | `{ x, y }` in pixels |
+| `hideWhenHidden` | `true` | Hide when behind the globe or outside the viewport |
+
+The kit exposes the same machinery as `globe.toScreen(position)` and `globe.trackPosition(position, listener)`.
 
 ## ProjectionSwitcher
 

@@ -172,6 +172,10 @@ export class FakeVec3 extends FakeVec2 {
     super(x, y);
     this[2] = z;
   }
+
+  dot(other: FakeVec3): number {
+    return this[0] * other[0] + this[1] * other[1] + this[2] * other[2];
+  }
 }
 
 let imageSourceCounter = 0;
@@ -628,6 +632,21 @@ export class FakeGlobe {
   is2D(): boolean {
     return this.projection !== null;
   }
+
+  /** Fake model space: x = longitude, y = latitude, z = altitude. */
+  computePointFromPosition(latitude: number, longitude: number, altitude: number, result: FakeVec3): FakeVec3 {
+    result[0] = longitude;
+    result[1] = latitude;
+    result[2] = altitude;
+    return result;
+  }
+
+  surfaceNormalAtPoint(_x: number, _y: number, _z: number, result: FakeVec3): FakeVec3 {
+    result[0] = 0;
+    result[1] = 0;
+    result[2] = 1;
+    return result;
+  }
 }
 
 export class FakeGlobe2D extends FakeGlobe {
@@ -706,6 +725,17 @@ export class FakeWorldWindow {
     this.globe = new FakeGlobe(elevationModel ?? new FakeEarthElevationModel());
     this.goToAnimator = new FakeGoToAnimator(this);
     this.drawContext = {
+      /** Fake viewport in drawing-buffer pixels; `project` maps longitude/latitude linearly onto it. */
+      viewport: { x: 0, y: 0, width: 800, height: 600 },
+      modelviewProjection: 'fake',
+      eyePoint: new FakeVec3(0, 0, 1e7),
+      project: (point: FakeVec3, result: FakeVec3) => {
+        const viewport = this.drawContext.viewport;
+        result[0] = ((point[0] + 180) / 360) * viewport.width;
+        result[1] = ((point[1] + 90) / 180) * viewport.height;
+        result[2] = 0;
+        return true;
+      },
       currentGlContext: {
         isContextLost: () => this.contextLost,
         getExtension: (name: string) =>

@@ -1,4 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import type { GlobeController } from 'worldwind-kit';
+
+declare global {
+  interface Window {
+    worldwindDemo?: { globe: GlobeController };
+  }
+}
 
 /** Collects page errors and console errors (a missing favicon is not an error worth failing on). */
 function collectErrors(page: Page): string[] {
@@ -55,6 +62,16 @@ for (const [framework, path] of [
       await page.goto(path);
       await expect(page.locator('canvas')).toHaveCount(1);
       const readout = page.locator('.wwui-coords-panel .wwui-coords');
+
+      // Click the New York pin in the initial view (found by projecting its position) and expect a popup that follows it.
+      const pin = await page.evaluate(() => window.worldwindDemo!.globe.toScreen({ latitude: 40.7128, longitude: -74.006 }));
+      expect(pin?.visible).toBe(true);
+      await page.mouse.click(pin!.x + 6, pin!.y - 14);
+      const popup = page.locator('.wwui-popup');
+      await expect(popup).toBeVisible();
+      await expect(popup).toContainText(/New York|JFK/);
+      await page.getByRole('button', { name: 'Close' }).click();
+      await expect(popup).toHaveCount(0);
 
       await page.mouse.move(640, 400);
       await expect(readout).toContainText('Lat/Lon');

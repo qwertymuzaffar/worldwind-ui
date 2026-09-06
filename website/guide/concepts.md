@@ -24,6 +24,10 @@ A pick asks WorldWind what lies under a screen point: the terrain position plus 
 
 WorldWind lets only the earliest-registered recognizer claim a gesture, so two independent click recognizers on a window never both fire. `GlobeController.on()` therefore keeps one recognizer set per event type and fans events out to every subscriber. On top of that, `ShapeEventRegistry` routes picks to per-shape handlers, so a hundred placemarks with `onClick` still share one recognizer.
 
+## Screen positions
+
+`globe.toScreen(position)` projects a geographic position to canvas pixels using the last rendered frame, and reports whether the point is inside the viewport and in front of the globe. `globe.trackPosition()` re-projects after every frame in which the point moved; the popup components are a thin layer over it.
+
 ## Assets and bundling
 
 WorldWind loads its images (pushpins, compass, Blue Marble) relative to its own script location, which bundlers break. The kit points WorldWind at a CDN copy matching the installed version, and `assetBaseUrl` lets you self-host. WorldWind's bundle also contains `eval`-wrapped modules that rolldown (Vite 8) mishandles; [Bundling WorldWind](./bundling) covers the plugin that fixes it.

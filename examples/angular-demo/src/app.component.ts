@@ -4,11 +4,25 @@ import {
   formatLatLon,
   type CameraTarget,
   type GeoJsonStyleResolver,
+  type GlobeController,
   type GlobeOptions,
   type LatLonAlt,
   type PickEvent,
   type PushpinColor,
 } from 'ngx-worldwind';
+
+declare global {
+  interface Window {
+    /** Exposed for the browser tests and for poking around in devtools. */
+    worldwindDemo?: { globe: GlobeController };
+  }
+}
+
+interface PopupState {
+  position: LatLonAlt;
+  title: string;
+  lines: string[];
+}
 
 interface City {
   name: string;
@@ -44,7 +58,7 @@ const CITIES: City[] = [
   imports: [...WORLDWIND_COMPONENTS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ww-globe [options]="options" style="height: 100vh" (globeClick)="lastClick.set($event)">
+    <ww-globe [options]="options" style="height: 100vh" (globeClick)="onGlobeClick($event)" (ready)="expose($event)">
       <div wwFallback class="wwui-panel wwui-panel--top-left">Loading NASA WorldWind…</div>
 
       <ww-layer kind="osm" [enabled]="false" />
@@ -63,6 +77,7 @@ const CITIES: City[] = [
             [pushpin]="city.pushpin"
             [highlight]="{ imageScale: 1.4 }"
             [highlightOnHover]="true"
+            [userData]="{ name: city.name }"
             (shapeClick)="selected.set(city)"
           />
         }
@@ -73,6 +88,14 @@ const CITIES: City[] = [
       </ww-renderable-layer>
 
       <ww-geojson-layer [source]="airports" name="Airports" [featureStyle]="airportStyle" />
+
+      @if (popup(); as p) {
+        <ww-popup [position]="p.position" [heading]="p.title" [closable]="true" (closed)="popup.set(null)">
+          @for (line of p.lines; track line) {
+            <div>{{ line }}</div>
+          }
+        </ww-popup>
+      }
 
       <ww-goto-box position="top-left" />
       <ww-measure-tool position="top-left" panelClass="wwui-panel--below-goto" />
@@ -103,6 +126,24 @@ export class AppComponent {
 
   readonly selected = signal<City | null>(null);
   readonly lastClick = signal<PickEvent | null>(null);
+  readonly popup = signal<PopupState | null>(null);
+
+  expose(globe: GlobeController): void {
+    window.worldwindDemo = { globe };
+  }
+
+  onGlobeClick(event: PickEvent): void {
+    this.lastClick.set(event);
+    const data = (event.top?.object as { userProperties?: unknown } | undefined)?.userProperties as Record<string, unknown> | undefined;
+    const position = event.top?.position ?? event.position;
+    if (!data || !position || typeof data['name'] !== 'string') {
+      this.popup.set(null);
+      return;
+    }
+    const lines = [formatLatLon(position, { precision: 3 })];
+    if ('busy' in data) lines.push(data['busy'] ? 'Busy airport' : 'Quiet airport');
+    this.popup.set({ position, title: data['name'], lines });
+  }
   readonly target = computed(() => this.selected() ?? { latitude: 20, longitude: 10 });
   readonly status = computed(() => {
     const selected = this.selected();
