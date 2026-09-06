@@ -58,6 +58,33 @@ jobs:
       - run: npm ci
       # Trusted publishing needs npm 11.5.1 or newer; Node 22 bundles npm 10.
       - run: npm install -g npm@latest && npm --version
+      # npm only logs OpenID Connect failures at verbose level, so do the same token exchange
+      # here and fail with the registry's actual reason when a trusted publisher does not match.
+      - name: Check npm trusted publishing
+        run: |
+          set -euo pipefail
+          id_token=$(curl -sSf -H "Accept: application/json" \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" | jq -r .value)
+          echo "::add-mask::$id_token"
+          echo "OpenID Connect token claims npm will see:"
+          node -e 'const p = JSON.parse(Buffer.from(process.argv[1].split(".")[1], "base64url").toString()); for (const k of ["repository", "repository_owner", "job_workflow_ref", "workflow_ref", "environment", "ref"]) console.log(`  ${k}: ${p[k] ?? "(none)"}`)' "$id_token"
+          failed=0
+          for pkg in worldwind-kit react-worldwind ngx-worldwind; do
+            status=$(curl -s -o /tmp/exchange.json -w '%{http_code}' -X POST -H "Accept: application/json" \
+              -H "Authorization: Bearer $id_token" \
+              "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$pkg")
+            if [ "$status" = "200" ]; then
+              echo "  $pkg: trusted publisher accepted"
+            else
+              echo "  $pkg: npm rejected the token (HTTP $status): $(jq -r '.message // .error // "no message"' /tmp/exchange.json)"
+              failed=1
+            fi
+          done
+          if [ "$failed" = 1 ]; then
+            echo "::error::npm rejected the OpenID Connect token for at least one package. On npmjs.com each package's Trusted Publisher must list the repository qwertymuzaffar/worldwind-ui and the workflow file release.yml with no environment."
+            exit 1
+          fi
       - name: Build, publish with provenance, tag and create GitHub releases
         uses: changesets/action/publish@v2
         with:
