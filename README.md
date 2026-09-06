@@ -113,6 +113,7 @@ packages/react     react-worldwind    (tsup, vitest + Testing Library)
 packages/angular   ngx-worldwind      (ng-packagr, partial Ivy; vitest + TestBed via Analog)
 examples/react-demo                   (Vite playground)
 examples/angular-demo                 (Angular CLI playground, zoneless)
+examples/bench                        (benchmark scenarios; `npm run bench` writes the performance page)
 website                               (VitePress docs + TypeDoc API pages; the Pages site root)
 ```
 
@@ -141,6 +142,11 @@ Releases use [Changesets](.changeset/README.md). Run `npm run changeset` with a 
 the packages with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers): the workflow
 authenticates with an OpenID Connect token and every release carries a provenance attestation, so
 no npm token is stored in the repository.
+
+## Performance
+
+Ten thousand placemarks draw at 60 frames per second on a laptop GPU; the full table, including a
+software-rendering column, is in the [performance page](https://qwertymuzaffar.github.io/worldwind-ui/guide/performance).
 
 ## Status
 

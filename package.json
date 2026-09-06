@@ -27,7 +27,8 @@
     "release": "npm run build && changeset publish",
     "build:examples": "npm run build -w react-demo -w angular-demo",
     "build:pages": "node scripts/build-pages.mjs",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "bench": "node scripts/bench.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.2",

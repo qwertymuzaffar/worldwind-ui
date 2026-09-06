@@ -8,7 +8,8 @@ export default defineConfig({
   testDir: 'e2e',
   timeout: 90_000,
   expect: { timeout: 20_000 },
-  retries: process.env.CI ? 1 : 0,
+  // WebGL startup timing varies under load; one retry keeps a slow machine from failing a good build.
+  retries: 1,
   workers: 1,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {

@@ -15,6 +15,7 @@
   "updateInternalDependencies": "patch",
   "ignore": [
     "react-demo",
-    "angular-demo"
+    "angular-demo",
+    "bench"
   ]
 }

@@ -31,7 +31,7 @@ features:
     details: Layer switcher, navigation, go-to search, coordinates readout, measuring tool and projection switcher, sharing one stylesheet.
   - icon: 🧪
     title: Tested where it counts
-    details: Unit tests against a WebGL-free fake, and browser tests against the deployed demos with software WebGL.
+    details: Unit tests against a WebGL-free fake, browser tests in Chromium, Firefox and WebKit, and a published performance table.
   - icon: 📦
     title: Bundler-proof
     details: A Vite plugin that keeps WorldWind's bundle working after production builds, or a CDN script loader.

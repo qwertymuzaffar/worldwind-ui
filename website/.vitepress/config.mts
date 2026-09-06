@@ -63,6 +63,7 @@ export default defineConfig({
             { text: 'Theming', link: '/guide/theming' },
             { text: 'Bundling WorldWind', link: '/guide/bundling' },
             { text: 'Testing without WebGL', link: '/guide/testing' },
+            { text: 'Performance', link: '/guide/performance' },
             { text: 'Demos', link: '/guide/demos' },
           ],
         },
