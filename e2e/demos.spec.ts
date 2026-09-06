@@ -7,16 +7,36 @@ declare global {
   }
 }
 
-/** Collects page errors and console errors (a missing favicon is not an error worth failing on). */
+/**
+ * Collects page errors and console errors from our own origin. Third-party resources (badge
+ * images, tile servers) log cookie and CORS notes in some browsers that are not ours to fix.
+ */
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`));
   page.on('console', (message) => {
     if (message.type() !== 'error') return;
-    if (/favicon/i.test(message.text()) || /favicon/i.test(message.location().url)) return;
-    errors.push(`console: ${message.text()} (${message.location().url})`);
+    const url = message.location().url;
+    if (/favicon/i.test(message.text()) || /favicon/i.test(url)) return;
+    if (url && !url.startsWith('http://127.0.0.1')) return;
+    errors.push(`console: ${message.text()} (${url})`);
   });
   return errors;
+}
+
+/** Clicks the pin at a position; retried because the placemark image may still be loading right after startup. */
+async function clickPin(page: Page, position: { latitude: number; longitude: number }): Promise<void> {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const pin = await page.evaluate((p) => window.worldwindDemo!.globe.toScreen(p), position);
+    expect(pin?.visible).toBe(true);
+    await page.mouse.click(pin!.x + 6, pin!.y - 14);
+    const opened = await page
+      .locator('.wwui-popup')
+      .waitFor({ state: 'visible', timeout: 4000 })
+      .then(() => true, () => false);
+    if (opened) return;
+  }
+  throw new Error('the popup did not open after clicking the pin');
 }
 
 test('docs home links to the guide, the API and both demos', async ({ page }) => {
@@ -64,9 +84,7 @@ for (const [framework, path] of [
       const readout = page.locator('.wwui-coords-panel .wwui-coords');
 
       // Click the New York pin in the initial view (found by projecting its position) and expect a popup that follows it.
-      const pin = await page.evaluate(() => window.worldwindDemo!.globe.toScreen({ latitude: 40.7128, longitude: -74.006 }));
-      expect(pin?.visible).toBe(true);
-      await page.mouse.click(pin!.x + 6, pin!.y - 14);
+      await clickPin(page, { latitude: 40.7128, longitude: -74.006 });
       const popup = page.locator('.wwui-popup');
       await expect(popup).toBeVisible();
       await expect(popup).toContainText(/New York|JFK/);

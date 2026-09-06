@@ -124,7 +124,7 @@ npm run build        # kit -> react -> angular
 npm test             # kit + react + angular suites
 npm run lint && npm run typecheck
 npm run pack:check   # what would be published
-npm run build:pages && npm run e2e   # browser tests against the assembled demo site
+npm run build:pages && npm run e2e   # Chromium, Firefox and WebKit tests against the assembled site
 npm run dev -w react-demo
 npm run dev -w angular-demo
 npm run build:pages  # docs site + both demos in _site/, as deployed to GitHub Pages

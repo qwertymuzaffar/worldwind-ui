@@ -30,4 +30,4 @@ The `ngx-worldwind` suite runs `TestBed` under Vitest with Analog's Vite plugin,
 
 ## Browser tests
 
-Unit tests cannot render WebGL. The repository runs Playwright against the deployed demos with software WebGL (`--use-angle=swiftshader`) in CI; two real bugs (a bundler rename and WorldWind's recognizer arbitration) were found only that way.
+Unit tests cannot render WebGL. The repository runs Playwright against the deployed demos in Chromium, Firefox and WebKit, all with software WebGL, in CI; two real bugs (a bundler rename and WorldWind's recognizer arbitration) were found only that way.
