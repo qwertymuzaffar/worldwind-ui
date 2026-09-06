@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@nasaworldwind/worldwind": "^0.11.1",
-    "worldwind-kit": "^0.4.0"
+    "worldwind-kit": "^0.5.0"
   },
   "devDependencies": {
     "typescript": "~6.0.0",
