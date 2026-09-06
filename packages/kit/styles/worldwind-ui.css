@@ -248,3 +248,27 @@
   gap: 8px;
   min-width: 220px;
 }
+
+/* Small screens: keep panels inside the viewport and let long widgets scroll. */
+@media (max-width: 720px) {
+  .wwui-panel {
+    max-width: calc(100vw - 2 * var(--wwui-gap));
+    padding: 8px 10px;
+  }
+
+  .wwui-layer-switcher {
+    min-width: 0;
+    max-height: 40vh;
+    overflow: auto;
+  }
+
+  .wwui-goto {
+    min-width: 0;
+  }
+
+  .wwui-coords {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    white-space: normal;
+  }
+}

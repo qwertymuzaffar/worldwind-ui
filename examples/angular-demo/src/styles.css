@@ -15,3 +15,11 @@ app-root {
 .wwui-panel.wwui-panel--below-goto { top: 110px; }
 .wwui-panel.wwui-panel--beside-nav { right: 64px; }
 .wwui-panel.wwui-panel--above-coords { bottom: 64px; }
+
+/* demo layout on phones: fewer panels, no overlaps */
+@media (max-width: 720px) {
+  .wwui-panel.wwui-panel--beside-nav,
+  .wwui-panel.wwui-panel--above-coords { display: none; }
+  .wwui-panel.wwui-panel--below-goto { top: 96px; }
+  .wwui-panel.wwui-panel--bottom-right { bottom: 84px; max-width: 60vw; }
+}
