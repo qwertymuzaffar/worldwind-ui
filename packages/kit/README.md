@@ -41,11 +41,14 @@ from a CDN by default; pass `assetBaseUrl` to self-host them.
 
 | Module | Highlights |
 | --- | --- |
-| `GlobeController` | Creates a `WorldWindow` on a host element, `layers`, `camera`, `pick()`, `on('click' \| 'dblclick' \| 'hover')`, `setProjection()`, `destroy()` |
+| `GlobeController` | Creates a `WorldWindow` on a host element, `layers`, `camera`, `pick()`, `on('click' \| 'dblclick' \| 'hover')`, `setProjection()` + `onProjectionChange()`, `destroy()` |
 | `LayerManager` | `add / remove / move / update / toggle / setOpacity`, stable snapshots via `all`, `subscribe()` |
 | `createBuiltInLayer`, `createWmsLayer` | WorldWind's bundled layers by short name (`'osm'`, `'bing-aerial'`, `'star-field'`, ...), WMS with sensible defaults |
 | `CameraController` | `get / set / goTo / zoomBy / rotateBy / tiltBy / resetNorth`, `subscribe()` for changes, `snapshot()` for external stores |
-| `pickAt`, `onPick` | Picks in client coordinates; click and tap through WorldWind's recognizers, hover throttled to one pick per frame |
+| `pickAt`, `PickDispatcher` | Picks in client coordinates; click and tap through WorldWind's recognizers (one shared set per globe, since WorldWind lets only one recognizer claim a gesture), hover throttled to one pick per frame |
+| `createWmtsLayerFromCapabilities`, `createWmsLayerFromCapabilities`, `fetchCapabilities` | OGC layers configured from a GetCapabilities document |
+| `loadGeoJson`, `loadKml` | GeoJSON (URL, string or object) with per-feature styling, and KML/KMZ, into a renderable layer |
+| `MeasureTool`, `formatArea` | Click-to-measure distances and areas in the tool's own layer |
 | `createPlacemark`, `createPath`, `createPolygon`, `createSurface*`, `createGeographicText` (+ `update*`) | Shapes from plain options: CSS colours, altitude modes, highlight styles, `userData` |
 | `ShapeEventRegistry` | Per-object click/hover routing sharing one recognizer per globe |
 | `scriptLoader`, `loadWorldWind`, `setWorldWind` | Load WorldWind lazily by `import()` or a CDN script, or inject a custom build |

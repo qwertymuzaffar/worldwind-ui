@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { onPick, pickAt } from '../src/picking';
+import { PickDispatcher, onPick, pickAt } from '../src/picking';
 import { createFakeWorldWind } from '../src/testing';
 
 function setup() {
@@ -91,5 +91,73 @@ describe('onPick', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe('PickDispatcher', () => {
+  it('shares one recognizer set per type and fans out to every handler', () => {
+    const { ww, wwd } = setup();
+    const dispatcher = new PickDispatcher(ww, wwd);
+    const first = vi.fn();
+    const second = vi.fn();
+    const offFirst = dispatcher.on('click', first);
+    dispatcher.on('click', second);
+    expect(ww.recognizers.filter((r) => r.kind === 'click')).toHaveLength(1);
+
+    wwd.setPickResult([{ isTerrain: true, position: { latitude: 1, longitude: 2 } }]);
+    expect(wwd.click(3, 4)).toHaveLength(1);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(1);
+
+    offFirst();
+    wwd.click(3, 4);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets clicks and double-clicks coexist, pauses unused recognizers and reuses them', () => {
+    const { ww, wwd } = setup();
+    const dispatcher = new PickDispatcher(ww, wwd);
+    const click = vi.fn();
+    const dblclick = vi.fn();
+    const offClick = dispatcher.on('click', click);
+    dispatcher.on('dblclick', dblclick);
+    const [single, double] = ww.recognizers.filter((r) => r.kind === 'click');
+    expect(single!.recognizesWith.has(double!)).toBe(true);
+    expect(double!.recognizesWith.has(single!)).toBe(true);
+
+    offClick();
+    expect(single!.enabled).toBe(false);
+    expect(wwd.click(1, 1)).toHaveLength(0);
+    dispatcher.on('click', click);
+    expect(single!.enabled).toBe(true);
+    expect(ww.recognizers.filter((r) => r.kind === 'click')).toHaveLength(2);
+    wwd.click(1, 1);
+    expect(click).toHaveBeenCalledTimes(1);
+
+    dispatcher.destroy();
+    expect(ww.recognizers.every((r) => !r.enabled)).toBe(true);
+  });
+
+  it('drops the hover listener when the last hover handler leaves', () => {
+    const { ww, wwd } = setup();
+    const dispatcher = new PickDispatcher(ww, wwd);
+    const off = dispatcher.on('hover', () => {});
+    expect(wwd.listenerCount('mousemove')).toBe(1);
+    off();
+    expect(wwd.listenerCount('mousemove')).toBe(0);
+  });
+});
+
+describe('a second independent click recognizer never fires (WorldWind arbitration)', () => {
+  it('is modelled by the fake so the dispatcher stays necessary', () => {
+    const { ww, wwd } = setup();
+    const first = vi.fn();
+    const second = vi.fn();
+    onPick(ww, wwd, 'click', first);
+    onPick(ww, wwd, 'click', second);
+    wwd.click(1, 1);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(second).not.toHaveBeenCalled();
   });
 });

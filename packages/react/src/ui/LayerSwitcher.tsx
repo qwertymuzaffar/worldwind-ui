@@ -1,4 +1,4 @@
-import { isOverlayLayer, type WWLayer } from 'worldwind-kit';
+import { isInternalLayer, isOverlayLayer, type WWLayer } from 'worldwind-kit';
 import { useGlobe } from '../context';
 import { useLayers } from '../hooks';
 import { Panel, type PanelPosition } from './Panel';
@@ -19,7 +19,7 @@ export interface LayerSwitcherProps {
   heading?: string | null;
   /** Show an opacity slider under each layer. Default true. */
   showOpacity?: boolean;
-  /** Hide screen-space layers such as the compass. Default true. */
+  /** Hide screen-space layers such as the compass, and layers owned by tools. Default true. */
   hideOverlays?: boolean;
   /** List the top-most layer first. Default true. */
   topFirst?: boolean;
@@ -39,7 +39,9 @@ export function LayerSwitcher({
 }: LayerSwitcherProps) {
   const globe = useGlobe();
   const all = useLayers();
-  let layers = all.filter((layer) => (!hideOverlays || !isOverlayLayer(layer)) && (!filter || filter(layer)));
+  let layers = all.filter(
+    (layer) => (!hideOverlays || (!isOverlayLayer(layer) && !isInternalLayer(layer))) && (!filter || filter(layer)),
+  );
   if (topFirst) layers = layers.slice().reverse();
 
   return (

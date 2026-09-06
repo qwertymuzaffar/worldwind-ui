@@ -116,10 +116,10 @@ describe('shape components', () => {
     const layer = wwd.layers[0] as FakeRenderableLayer;
     const placemark = layer.renderables.find((r) => r instanceof fake.Placemark) as FakePlacemark;
     const path = layer.renderables.find((r) => r instanceof fake.Path) as FakePath;
-    // One single-click recognizer for the globe's own output and one shared by every shape.
+    // The globe's own click output and every shape share one single-click recognizer.
     const singleClicks = fake.recognizers.filter((r) => r.kind === 'click' && r.numberOfClicks === 1);
-    expect(singleClicks).toHaveLength(2);
-    const click = singleClicks[1]!;
+    expect(singleClicks).toHaveLength(1);
+    const click = singleClicks[0]!;
 
     wwd.setPickResult([{ isTerrain: true, position: nyc }, { userObject: path }]);
     click.simulate(1, 1);

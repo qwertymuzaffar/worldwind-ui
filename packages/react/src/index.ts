@@ -19,18 +19,27 @@ export {
   useHoverPick,
   useLayer,
   useLayers,
+  useMeasureTool,
+  useProjection,
   type UseCameraResult,
   type UseLayerOptions,
+  type UseMeasureToolResult,
 } from './hooks';
 export {
   CustomLayer,
+  GeoJsonLayer,
+  KmlLayer,
   Layer,
   RenderableLayer,
   WmsLayer,
+  WmtsLayer,
   type CustomLayerProps,
+  type GeoJsonLayerProps,
+  type KmlLayerProps,
   type LayerProps,
   type RenderableLayerProps,
   type WmsLayerProps,
+  type WmtsLayerProps,
 } from './layers';
 export {
   GeographicText,
@@ -56,3 +65,5 @@ export { LayerSwitcher, type LayerSwitcherProps } from './ui/LayerSwitcher';
 export { NavigationControls, type NavigationControlsProps } from './ui/NavigationControls';
 export { GoToBox, type GoToBoxProps } from './ui/GoToBox';
 export { CoordinatesReadout, type CoordinatesReadoutProps } from './ui/CoordinatesReadout';
+export { MeasureTool, type MeasureToolProps } from './ui/MeasureTool';
+export { ProjectionSwitcher, type ProjectionSwitcherProps } from './ui/ProjectionSwitcher';

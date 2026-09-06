@@ -146,6 +146,19 @@ export function isOverlayLayer(layer: WWLayer): boolean {
   return kind !== undefined && OVERLAY_LAYER_KINDS.includes(kind);
 }
 
+/** Property under which {@link markInternalLayer} flags layers owned by tools rather than by the app. */
+export const INTERNAL_LAYER_KEY = '__wwuiInternal';
+
+/** Flags a layer as belonging to a tool (for example the measurement tool), so layer switchers hide it. */
+export function markInternalLayer<L extends WWLayer>(layer: L): L {
+  (layer as WWLayer)[INTERNAL_LAYER_KEY] = true;
+  return layer;
+}
+
+export function isInternalLayer(layer: WWLayer): boolean {
+  return layer[INTERNAL_LAYER_KEY] === true;
+}
+
 export interface SectorInput {
   minLatitude: number;
   maxLatitude: number;

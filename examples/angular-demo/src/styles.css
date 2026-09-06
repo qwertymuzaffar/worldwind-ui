@@ -10,3 +10,8 @@ app-root {
   display: block;
   height: 100%;
 }
+
+/* demo layout: stack panels that share a corner */
+.wwui-panel.wwui-panel--below-goto { top: 110px; }
+.wwui-panel.wwui-panel--beside-nav { right: 64px; }
+.wwui-panel.wwui-panel--above-coords { bottom: 64px; }

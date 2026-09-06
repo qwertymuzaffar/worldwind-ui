@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { isOverlayLayer, type WWLayer } from 'worldwind-kit';
+import { isInternalLayer, isOverlayLayer, type WWLayer } from 'worldwind-kit';
 import { WwGlobeComponent } from '../globe.component';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
@@ -41,7 +41,7 @@ export class WwLayerSwitcherComponent {
   readonly position = input<WwPanelPosition>('top-left');
   readonly heading = input<string | null>('Layers');
   readonly showOpacity = input(true);
-  /** Hide screen-space layers such as the compass. */
+  /** Hide screen-space layers such as the compass, and layers owned by tools. */
   readonly hideOverlays = input(true);
   /** List the top-most layer first. */
   readonly topFirst = input(true);
@@ -52,7 +52,9 @@ export class WwLayerSwitcherComponent {
     const hideOverlays = this.hideOverlays();
     const layers = this.globeHost
       .layers()
-      .filter((layer) => (!hideOverlays || !isOverlayLayer(layer)) && (!filter || filter(layer)));
+      .filter(
+        (layer) => (!hideOverlays || (!isOverlayLayer(layer) && !isInternalLayer(layer))) && (!filter || filter(layer)),
+      );
     return this.topFirst() ? layers.slice().reverse() : layers;
   });
 

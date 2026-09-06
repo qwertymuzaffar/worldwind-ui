@@ -1,5 +1,6 @@
 import { formatDistance, formatLatLon } from 'worldwind-kit';
 import { useCameraState, useHoverPick } from '../hooks';
+import { cx } from '../internal/utils';
 import { Panel, type PanelPosition } from './Panel';
 
 export interface CoordinatesReadoutProps {
@@ -28,7 +29,7 @@ export function CoordinatesReadout({
   const camera = useCameraState();
   const point = pick?.position ?? null;
   return (
-    <Panel position={position} className={className}>
+    <Panel position={position} className={cx('wwui-coords-panel', className)}>
       <div className="wwui-coords" aria-live="polite">
         {point ? (
           <span>

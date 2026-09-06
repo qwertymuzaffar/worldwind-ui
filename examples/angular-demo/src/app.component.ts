@@ -3,10 +3,10 @@ import {
   WORLDWIND_COMPONENTS,
   formatLatLon,
   type CameraTarget,
+  type GeoJsonStyleResolver,
   type GlobeOptions,
   type LatLonAlt,
   type PickEvent,
-  type ProjectionKind,
   type PushpinColor,
 } from 'ngx-worldwind';
 
@@ -16,6 +16,21 @@ interface City {
   longitude: number;
   pushpin: PushpinColor;
 }
+
+/** A few GeoJSON features, styled per feature through the featureStyle resolver. */
+const AIRPORTS = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'JFK', busy: true }, geometry: { type: 'Point', coordinates: [-73.7781, 40.6413] } },
+    { type: 'Feature', properties: { name: 'LHR', busy: true }, geometry: { type: 'Point', coordinates: [-0.4543, 51.47] } },
+    { type: 'Feature', properties: { name: 'HND', busy: false }, geometry: { type: 'Point', coordinates: [139.7798, 35.5494] } },
+    {
+      type: 'Feature',
+      properties: { name: 'North Atlantic tracks' },
+      geometry: { type: 'Polygon', coordinates: [[[-60, 40], [-10, 50], [-10, 60], [-60, 55], [-60, 40]]] },
+    },
+  ],
+};
 
 const CITIES: City[] = [
   { name: 'New York', latitude: 40.7128, longitude: -74.006, pushpin: 'red' },
@@ -29,7 +44,7 @@ const CITIES: City[] = [
   imports: [...WORLDWIND_COMPONENTS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <ww-globe [options]="options" [projection]="projection()" style="height: 100vh" (globeClick)="lastClick.set($event)">
+    <ww-globe [options]="options" style="height: 100vh" (globeClick)="lastClick.set($event)">
       <div wwFallback class="wwui-panel wwui-panel--top-left">Loading NASA WorldWind…</div>
 
       <ww-layer kind="osm" [enabled]="false" />
@@ -57,26 +72,17 @@ const CITIES: City[] = [
         }
       </ww-renderable-layer>
 
+      <ww-geojson-layer [source]="airports" name="Airports" [featureStyle]="airportStyle" />
+
       <ww-goto-box position="top-left" />
+      <ww-measure-tool position="top-left" panelClass="wwui-panel--below-goto" />
       <ww-layer-switcher position="bottom-right" />
       <ww-navigation-controls position="top-right" [home]="home" />
       <ww-coordinates position="bottom-left" />
+      <ww-projection-switcher position="top-right" panelClass="wwui-panel--beside-nav" />
 
-      <ww-panel position="top-right" heading="Projection" style="right: 64px">
-        <div class="wwui-toolbar wwui-toolbar--horizontal" style="padding: 0">
-          @for (kind of projections; track kind) {
-            <button
-              type="button"
-              class="wwui-button"
-              style="width: auto; padding: 0 10px"
-              [style.outline]="kind === projection() ? '2px solid var(--wwui-accent)' : null"
-              (click)="projection.set(kind)"
-            >
-              {{ kind }}
-            </button>
-          }
-        </div>
-        <p class="wwui-goto__status" style="margin-top: 8px">{{ status() }}</p>
+      <ww-panel position="bottom-left" class="wwui-panel--above-coords">
+        <p class="wwui-goto__status" style="margin: 0">{{ status() }}</p>
       </ww-panel>
     </ww-globe>
   `,
@@ -84,14 +90,17 @@ const CITIES: City[] = [
 export class AppComponent {
   readonly cities = CITIES;
   readonly route: LatLonAlt[] = CITIES.map((city) => ({ latitude: city.latitude, longitude: city.longitude, altitude: 300_000 }));
-  readonly projections: ProjectionKind[] = ['3d', 'equirectangular', 'mercator', 'north-polar'];
+  readonly airports = AIRPORTS;
+  readonly airportStyle: GeoJsonStyleResolver = ({ properties, geometryType }) =>
+    geometryType === 'Point'
+      ? { point: { pushpin: properties['busy'] ? 'orange' : 'white', labelProperty: 'name', imageScale: 0.8 } }
+      : { polygon: { fill: 'rgba(251, 191, 36, 0.15)', stroke: '#fbbf24', strokeWidth: 2 } };
   readonly options: GlobeOptions = {
     layers: ['blue-marble-landsat', 'atmosphere', 'star-field', 'compass'],
     view: { latitude: 20, longitude: 10, range: 1.6e7 },
   };
   readonly home: CameraTarget = { latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 };
 
-  readonly projection = signal<ProjectionKind>('3d');
   readonly selected = signal<City | null>(null);
   readonly lastClick = signal<PickEvent | null>(null);
   readonly target = computed(() => this.selected() ?? { latitude: 20, longitude: 10 });

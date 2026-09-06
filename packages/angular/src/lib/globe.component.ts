@@ -85,6 +85,8 @@ export class WwGlobeComponent {
   readonly layers = signal<readonly WWLayer[]>([]);
   /** Latest hover pick while hover picking is active. */
   readonly hoverPick = signal<PickResult | null>(null);
+  /** The current projection, updated whenever it changes. */
+  readonly projectionState = signal<ProjectionKind>('3d');
 
   private readonly host = viewChild.required<ElementRef<HTMLDivElement>>('host');
   private registry: ShapeEventRegistry | null = null;
@@ -154,8 +156,10 @@ export class WwGlobeComponent {
       });
       globe.camera.subscribe((state) => this.cameraState.set(state));
       globe.layers.subscribe((change) => this.layers.set(change.layers));
+      globe.onProjectionChange((projection) => this.projectionState.set(projection));
       this.cameraState.set(globe.camera.get());
       this.layers.set(globe.layers.all);
+      this.projectionState.set(globe.projection);
       this.globe.set(globe);
       this.ready.emit(globe);
     } catch (error) {

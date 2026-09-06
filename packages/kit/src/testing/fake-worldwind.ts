@@ -242,6 +242,99 @@ export class FakeWmsLayer extends FakeLayer {
     super(config?.title ?? config?.layerNames ?? 'WMS');
     this.constructorArgs = [config, timeString];
   }
+
+  /** Mirrors WorldWind: builds a layer config from a capabilities layer. */
+  static formLayerConfiguration(layerCapabilities: any): any {
+    return {
+      service: layerCapabilities.service ?? 'https://fake.example/wms',
+      layerNames: layerCapabilities.name,
+      title: layerCapabilities.title || layerCapabilities.name,
+      sector: FakeSector.FULL_SPHERE,
+      levelZeroDelta: new FakeLocation(36, 36),
+      numLevels: 19,
+      format: 'image/png',
+      size: 256,
+    };
+  }
+}
+
+export class FakeWmtsLayer extends FakeLayer {
+  constructor(
+    public config: any,
+    public timeString: string | null = null,
+  ) {
+    super(config?.title ?? config?.identifier ?? 'WMTS');
+    this.constructorArgs = [config, timeString];
+  }
+
+  static formLayerConfiguration(layerCapabilities: any, style?: string, matrixSet?: string, imageFormat?: string): any {
+    return {
+      identifier: layerCapabilities.identifier,
+      title: layerCapabilities.title || layerCapabilities.identifier,
+      style: style ?? 'default',
+      matrixSet: matrixSet ?? 'EPSG:3857',
+      format: imageFormat ?? 'image/png',
+      tileMatrixSet: {},
+    };
+  }
+}
+
+function childText(element: Element, localName: string): string {
+  for (const child of Array.from(element.children)) {
+    if (child.localName === localName) return child.textContent?.trim() ?? '';
+  }
+  return '';
+}
+
+/** Reads `<Layer><Name>` / `<Title>` pairs from a WMS capabilities document. */
+export class FakeWmsCapabilities {
+  readonly layers: Array<{ name: string; title: string }>;
+
+  constructor(public xmlDom: Document) {
+    this.layers = Array.from(xmlDom.querySelectorAll('Layer'))
+      .map((layer) => ({ name: childText(layer, 'Name'), title: childText(layer, 'Title') }))
+      .filter((layer) => layer.name);
+  }
+
+  getNamedLayers() {
+    return this.layers;
+  }
+
+  getNamedLayer(name: string) {
+    return this.layers.find((layer) => layer.name === name) ?? null;
+  }
+}
+
+/** Reads `<Layer><ows:Identifier>` / `<ows:Title>` pairs from a WMTS capabilities document. */
+export class FakeWmtsCapabilities {
+  readonly contents: { layer: Array<{ identifier: string; title: string }> };
+
+  constructor(public xmlDom: Document) {
+    this.contents = {
+      layer: Array.from(xmlDom.querySelectorAll('Layer'))
+        .map((layer) => ({ identifier: childText(layer, 'Identifier'), title: childText(layer, 'Title') }))
+        .filter((layer) => layer.identifier),
+    };
+  }
+
+  getLayer(identifier: string) {
+    return this.contents.layer.find((layer) => layer.identifier === identifier) ?? null;
+  }
+}
+
+export interface FakeKmlDocument {
+  kind: 'kml';
+  url: string;
+  displayName: string;
+  enabled: boolean;
+}
+
+/** Like WorldWind's KmlFile, the constructor returns a promise for the loaded document. */
+export class FakeKmlFile {
+  constructor(url: string) {
+    const document: FakeKmlDocument = { kind: 'kml', url, displayName: url, enabled: true };
+    return Promise.resolve(document) as unknown as FakeKmlFile;
+  }
 }
 
 // Attributes and shapes ---------------------------------------------------------------------------
@@ -320,7 +413,7 @@ export class FakePlacemarkAttributes {
   }
 }
 
-class FakeRenderable {
+export class FakeRenderable {
   displayName: string | null = null;
   enabled = true;
   pickDelegate: unknown = null;
@@ -593,6 +686,9 @@ export class FakeWorldWindow {
   frameStatistics: any = {};
   drawContext: any;
 
+  /** Every recognizer created through the same fake namespace (set by createFakeWorldWind). */
+  recognizers: FakeRecognizer[] = [];
+
   /** Test state. */
   redrawCount = 0;
   contextLost = false;
@@ -715,6 +811,22 @@ export class FakeWorldWindow {
     this.pickResult = typeof items === 'function' ? (point) => build(items(point)) : build(items);
   }
 
+  /**
+   * Clicks the globe the way WorldWind arbitrates it: the earliest enabled click recognizer for
+   * this window wins, plus any recognizer allowed to recognize simultaneously with it. Returns the
+   * recognizers that fired.
+   */
+  click(clientX: number, clientY: number, count = 1): FakeRecognizer[] {
+    const candidates = this.recognizers.filter(
+      (r) => r.target === this && r.enabled && r.kind === 'click' && r.numberOfClicks === count,
+    );
+    const winner = candidates[0];
+    if (!winner) return [];
+    const fired = candidates.filter((r) => r === winner || winner.recognizesWith.has(r) || r.recognizesWith.has(winner));
+    for (const recognizer of fired) recognizer.simulate(clientX, clientY, count);
+    return fired;
+  }
+
   /** Delivers an event to listeners registered through `addEventListener`. */
   dispatch(type: string, event: any): void {
     for (const listener of Array.from(this.listeners.get(type) ?? [])) listener(event);
@@ -739,11 +851,18 @@ export class FakeRecognizer {
   numberOfTouches = 1;
   button = 0;
 
+  /** Recognizers allowed to recognize at the same time as this one. */
+  readonly recognizesWith = new Set<FakeRecognizer>();
+
   constructor(
     public target: unknown,
     public callback: ((recognizer: FakeRecognizer) => void) | null,
     public kind: FakeRecognizerKind,
   ) {}
+
+  recognizeSimultaneouslyWith(other: FakeRecognizer): void {
+    this.recognizesWith.add(other);
+  }
 
   /** Fires the callback in the RECOGNIZED state, as a real click or tap would. */
   simulate(clientX: number, clientY: number, count = 1): boolean {
@@ -760,14 +879,72 @@ export class FakeRecognizer {
 
 // Misc --------------------------------------------------------------------------------------------
 
+type GeoJsonGeometryTypeName =
+  | 'Point'
+  | 'MultiPoint'
+  | 'LineString'
+  | 'MultiLineString'
+  | 'Polygon'
+  | 'MultiPolygon';
+
+function fakeGeometry(type: string) {
+  return {
+    type,
+    isPointType: () => type === 'Point',
+    isMultiPointType: () => type === 'MultiPoint',
+    isLineStringType: () => type === 'LineString',
+    isMultiLineStringType: () => type === 'MultiLineString',
+    isPolygonType: () => type === 'Polygon',
+    isMultiPolygonType: () => type === 'MultiPolygon',
+  };
+}
+
+const toFakeLocations = (coordinates: number[][]) => coordinates.map(([lon, lat]) => new FakeLocation(lat!, lon!));
+
+/**
+ * Walks a GeoJSON object (Feature or FeatureCollection) the way WorldWind's parser does:
+ * points become placemarks, lines surface polylines, polygons surface polygons, with the
+ * attributes, name and userProperties from the shape configuration callback.
+ */
 export class FakeGeoJSONParser {
   constructor(public dataSource: unknown) {}
 
   load(
     completionCallback: ((layer: unknown) => void) | null,
-    _shapeConfigurationCallback: unknown,
-    layer: unknown,
+    shapeConfigurationCallback: ((geometry: unknown, properties: Record<string, unknown>) => any) | null,
+    layer: FakeRenderableLayer | null,
   ): void {
+    const data: any = typeof this.dataSource === 'string' ? JSON.parse(this.dataSource) : this.dataSource;
+    const features: any[] = data?.type === 'FeatureCollection' ? data.features : data?.type === 'Feature' ? [data] : [];
+    for (const feature of features) {
+      const geometry = feature.geometry;
+      if (!geometry) continue;
+      const type = geometry.type as GeoJsonGeometryTypeName;
+      const configuration = shapeConfigurationCallback?.(fakeGeometry(type), feature.properties ?? {}) ?? {};
+      const renderables: FakeRenderable[] = [];
+      if (type === 'Point' || type === 'MultiPoint') {
+        const points: number[][] = type === 'Point' ? [geometry.coordinates] : geometry.coordinates;
+        for (const [lon, lat, alt] of points) {
+          const placemark = new FakePlacemark(new FakePosition(lat!, lon!, alt ?? 0), false, configuration.attributes ?? null);
+          if (configuration.name) placemark.label = configuration.name;
+          renderables.push(placemark);
+        }
+      } else if (type === 'LineString' || type === 'MultiLineString') {
+        const lines: number[][][] = type === 'LineString' ? [geometry.coordinates] : geometry.coordinates;
+        for (const line of lines) renderables.push(new FakeSurfacePolyline(toFakeLocations(line), configuration.attributes ?? null));
+      } else if (type === 'Polygon' || type === 'MultiPolygon') {
+        const polygons: number[][][][] = type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates;
+        for (const rings of polygons) {
+          renderables.push(new FakeSurfacePolygon(rings.map(toFakeLocations), configuration.attributes ?? null));
+        }
+      }
+      for (const renderable of renderables) {
+        if (configuration.highlightAttributes) (renderable as any).highlightAttributes = configuration.highlightAttributes;
+        if (configuration.userProperties) renderable.userProperties = configuration.userProperties;
+        if (configuration.pickDelegate) renderable.pickDelegate = configuration.pickDelegate;
+        layer?.addRenderable(renderable);
+      }
+    }
     completionCallback?.(layer);
   }
 }
@@ -787,8 +964,17 @@ export class FakeLengthMeasurer {
 export class FakeAreaMeasurer {
   constructor(public wwd: FakeWorldWindow) {}
 
-  getArea(): number {
-    return 0;
+  /** Planar shoelace area on an equirectangular approximation; good enough to be non-zero and stable. */
+  getArea(positions: FakeLocation[]): number {
+    if (positions.length < 3) return 0;
+    const metersPerDegree = 111_320;
+    let sum = 0;
+    for (let i = 0; i < positions.length; i += 1) {
+      const a = positions[i]!;
+      const b = positions[(i + 1) % positions.length]!;
+      sum += a.longitude * b.latitude - b.longitude * a.latitude;
+    }
+    return Math.abs(sum / 2) * metersPerDegree * metersPerDegree;
   }
 }
 
@@ -817,6 +1003,7 @@ export function createFakeWorldWind(): FakeWorldWind {
   class WorldWindow extends FakeWorldWindow {
     constructor(canvasElem: HTMLCanvasElement | string, elevationModel?: unknown) {
       super(canvasElem, elevationModel);
+      this.recognizers = recognizers;
       windows.push(this);
     }
   }
@@ -916,7 +1103,10 @@ export function createFakeWorldWind(): FakeWorldWind {
     ShowTessellationLayer: builtInLayer('Show Tessellation'),
     TectonicPlatesLayer: builtInLayer('Tectonic Plates'),
     WmsLayer: FakeWmsLayer,
-    WmtsLayer: FakeWmsLayer,
+    WmtsLayer: FakeWmtsLayer,
+    WmsCapabilities: FakeWmsCapabilities,
+    WmtsCapabilities: FakeWmtsCapabilities,
+    KmlFile: FakeKmlFile,
     HeatMapLayer: builtInLayer('HeatMap'),
 
     Placemark: FakePlacemark,

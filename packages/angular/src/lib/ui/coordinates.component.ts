@@ -9,7 +9,7 @@ import { WwPanelComponent, type WwPanelPosition } from './panel.component';
   selector: 'ww-coordinates',
   imports: [WwPanelComponent],
   template: `
-    <ww-panel [position]="position()">
+    <ww-panel [position]="position()" class="wwui-coords-panel">
       <div class="wwui-coords" aria-live="polite">
         @if (point(); as p) {
           <span><span class="wwui-coords__label">Lat/Lon</span>{{ formatPoint(p) }}</span>

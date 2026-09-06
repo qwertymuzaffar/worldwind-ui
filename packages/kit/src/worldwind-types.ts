@@ -276,6 +276,8 @@ export interface WWGestureRecognizer {
   readonly clientX: number;
   readonly clientY: number;
   target: unknown;
+  /** Lets this recognizer recognize at the same time as `other` instead of one failing the other. */
+  recognizeSimultaneouslyWith(other: WWGestureRecognizer): void;
   [key: string]: any;
 }
 
@@ -291,6 +293,29 @@ export interface WWWmsLayerConfig {
   styleNames?: string;
   title?: string;
   version?: string;
+}
+
+export interface WWWmtsLayerConfig {
+  identifier: string;
+  service?: string;
+  resourceUrl?: string;
+  format: string;
+  style?: string;
+  tileMatrixSet: any;
+  title?: string;
+  [key: string]: any;
+}
+
+export interface WWWmsCapabilities {
+  getNamedLayer(name: string): any | null;
+  getNamedLayers(): any[];
+  [key: string]: any;
+}
+
+export interface WWWmtsCapabilities {
+  getLayer(identifier: string): any | null;
+  contents: { layer: any[]; [key: string]: any };
+  [key: string]: any;
 }
 
 export interface WWGeoJSONParser {
@@ -429,8 +454,15 @@ export interface WorldWindStatic {
   FrameStatisticsLayer: LayerCtor<[wwd: WWWorldWindow]>;
   ShowTessellationLayer: LayerCtor;
   TectonicPlatesLayer: LayerCtor<[attributes?: WWShapeAttributes | null]>;
-  WmsLayer: LayerCtor<[config: WWWmsLayerConfig, timeString?: string | null]>;
-  WmtsLayer: LayerCtor<[config: any, timeString?: string | null]>;
+  WmsLayer: LayerCtor<[config: WWWmsLayerConfig, timeString?: string | null]> & {
+    formLayerConfiguration(wmsLayerCapabilities: any): WWWmsLayerConfig;
+  };
+  WmtsLayer: LayerCtor<[config: WWWmtsLayerConfig, timeString?: string | null]> & {
+    formLayerConfiguration(wmtsLayerCapabilities: any, style?: string, matrixSet?: string, imageFormat?: string): WWWmtsLayerConfig;
+  };
+  WmsCapabilities: WWCtor<WWWmsCapabilities, [xmlDom: Document]>;
+  WmtsCapabilities: WWCtor<WWWmtsCapabilities, [xmlDom: Document]>;
+  KmlFile: WWCtor<any, [url: string, controls?: unknown[]]>;
   HeatMapLayer: LayerCtor<[displayName: string, data: any[]]>;
 
   // Shapes

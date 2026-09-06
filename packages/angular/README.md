@@ -59,7 +59,10 @@ export class MapComponent {
 | --- | --- |
 | `ww-globe` | Creates the globe. Inputs: `options` (creation), `projection` (reactive), `loadOptions`, `hoverPicking`. Outputs: `ready`, `loadError`, `globeClick`, `globeDoubleClick`, `globeHover`. Signals: `globe`, `cameraState`, `layers`, `hoverPick`. |
 | `ww-layer` | Built-in layer by `kind` (`blue-marble-landsat`, `osm`, `bing-aerial`*, `atmosphere`, `star-field`, `compass`, ...). `enabled`, `opacity`, `index`, ... |
-| `ww-wms-layer` | OGC WMS: `service`, `layerNames`, `sector`, `numLevels`, `time`, ... |
+| `ww-wms-layer` | OGC WMS: `service`, `layerNames`, `sector`, `numLevels`, `time`, ...; `[fromCapabilities]="true"` reads the tiling from GetCapabilities |
+| `ww-wmts-layer` | OGC WMTS from GetCapabilities: `service`, `layer`, `styleName`, `matrixSet`, `format` |
+| `ww-geojson-layer` | GeoJSON from a URL, string or object, styled per feature through `featureStyle`, in its own layer |
+| `ww-kml-layer` | KML or KMZ from a URL, in its own layer |
 | `ww-renderable-layer` | Holds shapes. |
 | `ww-custom-layer` | Any WorldWind layer via `[factory]`. |
 | `ww-placemark` | Pushpin (`pushpin="blue"`), image or label; `highlight`, `drawLeaderLine`, `altitudeMode`, ... |
@@ -68,7 +71,7 @@ export class MapComponent {
 | `ww-geographic-text` | A label at a position. |
 | `ww-camera` | Declarative camera: `latitude`, `longitude`, `range`, `heading`, `tilt`, `animate`. |
 | `ww-panel` | A floating corner card (`position`, `heading`). |
-| `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates` | Ready-made widgets. |
+| `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher` | Ready-made widgets. |
 
 \* Bing layers need `bingMapsKey` in `options`.
 
@@ -78,8 +81,12 @@ costs GPU time and is off unless something asks for it.
 
 ## Helpers
 
-`injectGlobe()`, `injectCameraState()`, `injectLayers()` and `injectHoverPick()` return signals
-for components rendered inside `<ww-globe>`. Everything from `worldwind-kit` is re-exported.
+`injectGlobe()`, `injectCameraState()`, `injectLayers()`, `injectProjection()` and `injectHoverPick()`
+return signals for components rendered inside `<ww-globe>`. Layer components accept asynchronous
+factories and emit `loadError`. Everything from `worldwind-kit` is re-exported.
+
+The inputs `styleName` (WMTS) and `featureStyle` (GeoJSON) are not called `style` because a static
+`style` attribute is consumed by the DOM before it can reach a component input.
 
 ## Bundling
 

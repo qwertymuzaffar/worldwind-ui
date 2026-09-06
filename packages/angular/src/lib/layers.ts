@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -13,7 +14,13 @@ import {
   applyLayerOptions,
   createBuiltInLayer,
   createWmsLayer,
+  createWmsLayerFromCapabilities,
+  createWmtsLayerFromCapabilities,
+  loadGeoJson,
+  loadKml,
   type BuiltInLayerKind,
+  type GeoJsonStyle,
+  type GeoJsonStyleResolver,
   type GlobeController,
   type LayerOptions,
   type SectorInput,
@@ -36,7 +43,10 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
   readonly minActiveAltitude = input<number | undefined>(undefined);
   readonly maxActiveAltitude = input<number | undefined>(undefined);
 
-  /** The live WorldWind layer, null until the globe is ready. */
+  /** Emits when an asynchronous `create` rejects. */
+  readonly loadError = output<unknown>();
+
+  /** The live WorldWind layer, null until the globe is ready (and, for async layers, loaded). */
   readonly layer = signal<L | null>(null);
 
   private readonly layerOptions = computed<LayerOptions>(() => ({
@@ -52,14 +62,32 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
     effect((onCleanup) => {
       const globe = this.globeHost.globe();
       if (!globe) return;
-      const layer = this.create(globe);
-      untracked(() => {
-        applyLayerOptions(layer, this.layerOptions());
-        globe.layers.add(layer, { index: this.index() });
-        this.layer.set(layer);
-      });
+      let cancelled = false;
+      let added: L | null = null;
+      const attach = (layer: L) => {
+        untracked(() => {
+          applyLayerOptions(layer, this.layerOptions());
+          globe.layers.add(layer, { index: this.index() });
+          added = layer;
+          this.layer.set(layer);
+        });
+      };
+      const result = this.create(globe);
+      if (result instanceof Promise) {
+        result.then(
+          (layer) => {
+            if (!cancelled) attach(layer);
+          },
+          (error: unknown) => {
+            if (!cancelled) this.loadError.emit(error);
+          },
+        );
+      } else {
+        attach(result);
+      }
       onCleanup(() => {
-        if (!globe.isDisposed) globe.layers.remove(layer);
+        cancelled = true;
+        if (added && !globe.isDisposed) globe.layers.remove(added);
         this.layer.set(null);
       });
     });
@@ -74,8 +102,8 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
     });
   }
 
-  /** Builds the layer. Signal inputs read here recreate the layer when they change. */
-  protected abstract create(globe: GlobeController): L;
+  /** Builds the layer, synchronously or from a promise. Signal inputs read here recreate the layer when they change. */
+  protected abstract create(globe: GlobeController): L | Promise<L>;
 }
 
 /** One of WorldWind's built-in layers: `<ww-layer kind="blue-marble-landsat" />`. */
@@ -101,6 +129,8 @@ export class WwLayerComponent extends WwLayerBase {
 export class WwWmsLayerComponent extends WwLayerBase {
   readonly service = input.required<string>();
   readonly layerNames = input.required<string>();
+  /** Read the tiling and formats from GetCapabilities; `layerNames` is then the layer name to look up. */
+  readonly fromCapabilities = input(false);
   readonly styleNames = input<string | undefined>(undefined);
   readonly format = input<string | undefined>(undefined);
   readonly size = input<number | undefined>(undefined);
@@ -111,7 +141,15 @@ export class WwWmsLayerComponent extends WwLayerBase {
   readonly version = input<string | undefined>(undefined);
   readonly time = input<string | null | undefined>(undefined);
 
-  protected override create(globe: GlobeController): WWLayer {
+  protected override create(globe: GlobeController): WWLayer | Promise<WWLayer> {
+    if (this.fromCapabilities()) {
+      return createWmsLayerFromCapabilities(globe.worldWind, {
+        service: this.service(),
+        layer: this.layerNames(),
+        time: this.time(),
+        displayName: untracked(this.displayName),
+      });
+    }
     return createWmsLayer(globe.worldWind, {
       service: this.service(),
       layerNames: this.layerNames(),
@@ -154,5 +192,123 @@ export class WwCustomLayerComponent extends WwLayerBase {
 
   protected override create(globe: GlobeController): WWLayer {
     return this.factory()(globe);
+  }
+}
+
+/** An OGC WMTS layer configured from the service's GetCapabilities document. */
+@Component({
+  selector: 'ww-wmts-layer',
+  template: '',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WwWmtsLayerComponent extends WwLayerBase {
+  /** The WMTS endpoint or a full GetCapabilities URL. */
+  readonly service = input.required<string>();
+  /** The layer identifier as listed in the capabilities. */
+  readonly layer_ = input.required<string>({ alias: 'layer' });
+  /** Style identifier (named `styleName` because `style` is the DOM attribute). */
+  readonly styleName = input<string | undefined>(undefined);
+  readonly matrixSet = input<string | undefined>(undefined);
+  readonly format = input<string | undefined>(undefined);
+  readonly time = input<string | null | undefined>(undefined);
+
+  protected override create(globe: GlobeController): Promise<WWLayer> {
+    return createWmtsLayerFromCapabilities(globe.worldWind, {
+      service: this.service(),
+      layer: this.layer_(),
+      style: this.styleName(),
+      matrixSet: this.matrixSet(),
+      format: this.format(),
+      time: this.time(),
+      displayName: untracked(this.displayName),
+    });
+  }
+}
+
+/** Loads GeoJSON into its own renderable layer; reloads when `source` or `style` change. */
+@Component({
+  selector: 'ww-geojson-layer',
+  template: '',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WwGeoJsonLayerComponent extends WwLayerBase<WWRenderableLayer> {
+  /** A URL, a JSON string, or a GeoJSON object. */
+  readonly source = input.required<string | object>();
+  /** Per-geometry styling (named `featureStyle` because `style` is the DOM attribute). */
+  readonly featureStyle = input<GeoJsonStyle | GeoJsonStyleResolver | undefined>(undefined);
+  readonly name = input('GeoJSON');
+  readonly loaded = output<WWRenderableLayer>();
+
+  constructor() {
+    super();
+    effect((onCleanup) => {
+      const layer = this.layer();
+      const source = this.source();
+      const style = this.featureStyle();
+      const globe = untracked(this.globeHost.globe);
+      if (!layer || !globe) return;
+      let cancelled = false;
+      const controller = new AbortController();
+      layer.removeAllRenderables();
+      loadGeoJson(globe.worldWind, source, layer, { style, signal: controller.signal }).then(
+        () => {
+          if (cancelled) return;
+          globe.redraw();
+          this.loaded.emit(layer);
+        },
+        (error: unknown) => {
+          if (!cancelled) this.loadError.emit(error);
+        },
+      );
+      onCleanup(() => {
+        cancelled = true;
+        controller.abort();
+      });
+    });
+  }
+
+  protected override create(globe: GlobeController): WWRenderableLayer {
+    return new globe.worldWind.RenderableLayer(this.name());
+  }
+}
+
+/** Loads a KML or KMZ document into its own renderable layer. */
+@Component({
+  selector: 'ww-kml-layer',
+  template: '',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class WwKmlLayerComponent extends WwLayerBase<WWRenderableLayer> {
+  readonly url = input.required<string>();
+  readonly name = input('KML');
+  readonly loaded = output<unknown>();
+
+  constructor() {
+    super();
+    effect((onCleanup) => {
+      const layer = this.layer();
+      const url = this.url();
+      const globe = untracked(this.globeHost.globe);
+      if (!layer || !globe) return;
+      let cancelled = false;
+      layer.removeAllRenderables();
+      loadKml(globe.worldWind, url, layer).then(
+        (document) => {
+          if (cancelled) return;
+          globe.redraw();
+          this.loaded.emit(document);
+        },
+        (error: unknown) => {
+          if (!cancelled) this.loadError.emit(error);
+        },
+      );
+      onCleanup(() => {
+        cancelled = true;
+      });
+    });
+  }
+
+  protected override create(globe: GlobeController): WWRenderableLayer {
+    return new globe.worldWind.RenderableLayer(this.name());
   }
 }

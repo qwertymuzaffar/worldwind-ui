@@ -38,7 +38,10 @@ export function Map() {
 | --- | --- |
 | `<Globe>` | Creates the globe. Creation props: `layers`, `view`, `elevation`, `assetBaseUrl`, `bingMapsKey`, `pixelScale`, `deepPicking`, `logLevel`. Reactive: `projection`, `onClick`, `onDoubleClick`, `onHover`. Also `fallback`, `onReady`, `onError`, `loadOptions`. |
 | `<Layer kind>` | A built-in layer (`blue-marble`, `blue-marble-landsat`, `osm`, `bing-aerial`*, `atmosphere`, `star-field`, `compass`, `coordinates`, `view-controls`, ...). `enabled`, `opacity`, `index`, ... are reactive. |
-| `<WmsLayer>` | OGC WMS layer: `service`, `layerNames`, `sector`, `numLevels`, `time`, ... |
+| `<WmsLayer>` | OGC WMS layer: `service`, `layerNames`, `sector`, `numLevels`, `time`, ...; with `fromCapabilities` the tiling comes from GetCapabilities |
+| `<WmtsLayer>` | OGC WMTS layer from GetCapabilities: `service`, `layer`, `style`, `matrixSet`, `format` |
+| `<GeoJsonLayer>` | GeoJSON from a URL, string or object, styled per feature (`style` object or resolver), in its own layer |
+| `<KmlLayer>` | KML or KMZ from a URL, in its own layer |
 | `<RenderableLayer>` | Holds shapes. Provides the layer to its children. |
 | `<CustomLayer create>` | Any WorldWind layer via a factory. |
 | `<Placemark>` | Pushpin (`pushpin="blue"`), image or label at a position; `highlight`, `drawLeaderLine`, `altitudeMode`, ... |
@@ -51,6 +54,8 @@ export function Map() {
 | `<NavigationControls>` | Zoom, north, tilt, home. |
 | `<GoToBox>` | `lat, lon` or place-name search (Nominatim). |
 | `<CoordinatesReadout>` | Position under the mouse and camera range. |
+| `<MeasureTool>` | Click-to-measure distances and areas. |
+| `<ProjectionSwitcher>` | Buttons for the 3D globe and the flat projections. |
 
 \* Bing layers need `bingMapsKey` on `<Globe>`.
 
@@ -66,9 +71,11 @@ nothing extra. Shape props are compared structurally, so inline objects do not c
 | `useWorldWind()` | The raw WorldWind namespace |
 | `useCamera()` | `{ state, set, goTo, zoomIn, zoomOut, rotateBy, tiltBy, resetNorth, ... }`; `useCameraState()` for the state alone |
 | `useLayers()` | Layer snapshot, bottom to top |
-| `useLayer(create, deps, options)` | Adds any layer for the component's lifetime |
+| `useLayer(create, deps, options)` | Adds any layer for the component's lifetime; `create` may return a promise |
 | `useGlobeEvent(type, handler)` | Globe-wide pick events |
 | `useHoverPick()` | The latest hover pick |
+| `useProjection()` | The current projection |
+| `useMeasureTool(options)` | `{ state, start, stop, toggle, undo, clear, tool }` for a click-to-measure tool |
 | `useRenderable(create, update, options)`, `useShapeEvents(object, props)` | Building blocks for your own shape components |
 
 Everything from `worldwind-kit` is re-exported, so one import covers both.

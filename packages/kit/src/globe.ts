@@ -1,6 +1,6 @@
 import { configureAssetBaseUrl } from './assets';
 import { CameraController, type CameraState } from './camera';
-import type { Unsubscribe } from './events';
+import { createEmitter, type Unsubscribe } from './events';
 import {
   LayerManager,
   createBuiltInLayer,
@@ -9,11 +9,21 @@ import {
   type LayerOptions,
   type WmsLayerOptions,
 } from './layers';
-import { onPick, pickAt, type PickEventType, type PickHandler, type PickOptions, type PickResult } from './picking';
+import { PickDispatcher, pickAt, type PickEventType, type PickHandler, type PickOptions, type PickResult } from './picking';
 import { loadWorldWind, type LoadWorldWindOptions } from './worldwind';
 import type { WWLayer, WWRenderableLayer, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
 export type ProjectionKind = '3d' | 'equirectangular' | 'mercator' | 'north-polar' | 'south-polar';
+
+export const PROJECTION_KINDS: readonly ProjectionKind[] = ['3d', 'equirectangular', 'mercator', 'north-polar', 'south-polar'];
+
+export const PROJECTION_LABELS: Record<ProjectionKind, string> = {
+  '3d': '3D',
+  equirectangular: 'Equirectangular',
+  mercator: 'Mercator',
+  'north-polar': 'North polar',
+  'south-polar': 'South polar',
+};
 
 export type LogLevel = 'none' | 'severe' | 'warning' | 'info';
 
@@ -61,6 +71,8 @@ export class GlobeController {
 
   private readonly ownsCanvas: boolean;
   private readonly cleanups: Unsubscribe[] = [];
+  private readonly projectionEmitter = createEmitter<ProjectionKind>();
+  private readonly picks: PickDispatcher;
   private currentProjection: ProjectionKind;
   private disposed = false;
 
@@ -104,6 +116,7 @@ export class GlobeController {
 
     this.layers = new LayerManager(this.wwd);
     this.camera = new CameraController(worldWind, this.wwd);
+    this.picks = new PickDispatcher(worldWind, this.wwd);
 
     this.currentProjection = '3d';
     if (options.projection && options.projection !== '3d') this.setProjection(options.projection);
@@ -144,10 +157,12 @@ export class GlobeController {
     return pickAt(this.wwd, clientX, clientY, options);
   }
 
-  /** Subscribes to click, double-click or hover picks. Unsubscribed automatically on destroy. */
+  /**
+   * Subscribes to click, double-click or hover picks. All subscribers of a type share one set of
+   * WorldWind recognizers (see {@link PickDispatcher}). Unsubscribed automatically on destroy.
+   */
   on(type: PickEventType, handler: PickHandler): Unsubscribe {
-    const unsubscribe = onPick(this.worldWind, this.wwd, type, handler);
-    return this.track(unsubscribe);
+    return this.picks.on(type, handler);
   }
 
   /** Raw DOM events on the canvas (`wheel`, `mousemove`, `touchstart`, ...). */
@@ -182,6 +197,12 @@ export class GlobeController {
     }
     this.currentProjection = kind;
     this.wwd.redraw();
+    this.projectionEmitter.emit(kind);
+  }
+
+  /** Notifies whenever {@link setProjection} changes the projection. */
+  onProjectionChange(listener: (projection: ProjectionKind) => void): Unsubscribe {
+    return this.projectionEmitter.on(listener);
   }
 
   /**
@@ -193,6 +214,8 @@ export class GlobeController {
     this.disposed = true;
 
     for (const cleanup of this.cleanups.splice(0)) cleanup();
+    this.picks.destroy();
+    this.projectionEmitter.clear();
     this.camera.destroy();
     this.layers.destroy();
 

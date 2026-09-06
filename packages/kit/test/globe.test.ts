@@ -113,3 +113,17 @@ describe('GlobeController', () => {
     expect(cancel).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('GlobeController.onProjectionChange', () => {
+  it('notifies on projection changes and stops after destroy', () => {
+    const fake = createFakeWorldWind();
+    const globe = new GlobeController(fake, document.createElement('div'));
+    const listener = vi.fn();
+    const off = globe.onProjectionChange(listener);
+    globe.setProjection('mercator');
+    expect(listener).toHaveBeenCalledWith('mercator');
+    off();
+    globe.setProjection('3d');
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+});

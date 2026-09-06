@@ -2,19 +2,21 @@ import { useState } from 'react';
 import {
   Camera,
   CoordinatesReadout,
+  GeoJsonLayer,
   Globe,
   GoToBox,
   Layer,
   LayerSwitcher,
+  MeasureTool,
   NavigationControls,
   Panel,
   Path,
   Placemark,
+  ProjectionSwitcher,
   RenderableLayer,
   SurfaceCircle,
   formatLatLon,
   type PickEvent,
-  type ProjectionKind,
 } from 'react-worldwind';
 
 const CITIES = [
@@ -26,10 +28,22 @@ const CITIES = [
 
 const ROUTE = CITIES.map((city) => ({ latitude: city.latitude, longitude: city.longitude, altitude: 300_000 }));
 
-const PROJECTIONS: ProjectionKind[] = ['3d', 'equirectangular', 'mercator', 'north-polar'];
+/** A few GeoJSON features, styled per feature through the GeoJsonLayer callback. */
+const AIRPORTS = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'JFK', busy: true }, geometry: { type: 'Point', coordinates: [-73.7781, 40.6413] } },
+    { type: 'Feature', properties: { name: 'LHR', busy: true }, geometry: { type: 'Point', coordinates: [-0.4543, 51.47] } },
+    { type: 'Feature', properties: { name: 'HND', busy: false }, geometry: { type: 'Point', coordinates: [139.7798, 35.5494] } },
+    {
+      type: 'Feature',
+      properties: { name: 'North Atlantic tracks' },
+      geometry: { type: 'Polygon', coordinates: [[[-60, 40], [-10, 50], [-10, 60], [-60, 55], [-60, 40]]] },
+    },
+  ],
+};
 
 export function App() {
-  const [projection, setProjection] = useState<ProjectionKind>('3d');
   const [selected, setSelected] = useState<(typeof CITIES)[number] | null>(null);
   const [lastClick, setLastClick] = useState<PickEvent | null>(null);
   const target = selected ?? { latitude: 20, longitude: 10 };
@@ -39,7 +53,6 @@ export function App() {
       style={{ height: '100vh' }}
       layers={['blue-marble-landsat', 'atmosphere', 'star-field', 'compass']}
       view={{ latitude: 20, longitude: 10, range: 1.6e7 }}
-      projection={projection}
       fallback={<div className="wwui-panel wwui-panel--top-left">Loading NASA WorldWind…</div>}
       onClick={setLastClick}
     >
@@ -62,26 +75,25 @@ export function App() {
         {selected ? <SurfaceCircle center={selected} radius={150_000} fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" /> : null}
       </RenderableLayer>
 
+      <GeoJsonLayer
+        source={AIRPORTS}
+        name="Airports"
+        style={({ properties, geometryType }) =>
+          geometryType === 'Point'
+            ? { point: { pushpin: properties.busy ? 'orange' : 'white', labelProperty: 'name', imageScale: 0.8 } }
+            : { polygon: { fill: 'rgba(251, 191, 36, 0.15)', stroke: '#fbbf24', strokeWidth: 2 } }
+        }
+      />
+
       <GoToBox position="top-left" />
+      <MeasureTool position="top-left" className="wwui-panel--below-goto" />
       <LayerSwitcher position="bottom-right" />
       <NavigationControls position="top-right" home={{ latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 }} />
       <CoordinatesReadout position="bottom-left" />
+      <ProjectionSwitcher position="top-right" className="wwui-panel--beside-nav" />
 
-      <Panel position="top-right" heading="Projection" style={{ right: 64 }}>
-        <div className="wwui-toolbar wwui-toolbar--horizontal" style={{ padding: 0 }}>
-          {PROJECTIONS.map((kind) => (
-            <button
-              key={kind}
-              type="button"
-              className="wwui-button"
-              style={{ width: 'auto', padding: '0 10px', outline: kind === projection ? '2px solid var(--wwui-accent)' : undefined }}
-              onClick={() => setProjection(kind)}
-            >
-              {kind}
-            </button>
-          ))}
-        </div>
-        <p className="wwui-goto__status" style={{ marginTop: 8 }}>
+      <Panel position="bottom-left" className="wwui-panel--above-coords">
+        <p className="wwui-goto__status" style={{ margin: 0 }}>
           {selected ? `Selected: ${selected.name}` : 'Click a pin to fly there'}
           {lastClick?.position ? ` · last click ${formatLatLon(lastClick.position, { precision: 2 })}` : ''}
         </p>

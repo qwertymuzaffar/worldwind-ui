@@ -232,3 +232,19 @@
   position: absolute;
   inset: 0;
 }
+
+.wwui-button--wide {
+  width: auto;
+  padding: 0 10px;
+}
+
+.wwui-button--active {
+  outline: 2px solid var(--wwui-accent);
+  outline-offset: 1px;
+}
+
+.wwui-measure {
+  display: grid;
+  gap: 8px;
+  min-width: 220px;
+}
