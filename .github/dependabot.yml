@@ -6,6 +6,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # Angular 22 and ng-packagr 22 require TypeScript >=6.0 <6.1, so a TypeScript major
+      # can only move together with an Angular release that supports it.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
     groups:
       angular:
         patterns: ['@angular/*', 'ng-packagr', '@analogjs/*']
