@@ -30,7 +30,16 @@ export default defineConfig({
       name: 'firefox',
       use: {
         ...devices['Desktop Firefox'],
-        launchOptions: { firefoxUserPrefs: { 'webgl.disabled': false, 'webgl.force-enabled': true } },
+        // Headless Firefox on Linux has no WebGL, so CI runs it headed under Xvfb (see ci.yml).
+        headless: !process.env.CI,
+        launchOptions: {
+          firefoxUserPrefs: {
+            'webgl.disabled': false,
+            'webgl.force-enabled': true,
+            'webgl.disable-fail-if-major-performance-caveat': true,
+            'gfx.webrender.software': true,
+          },
+        },
       },
     },
     {

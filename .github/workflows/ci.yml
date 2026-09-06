@@ -35,7 +35,8 @@ jobs:
       - run: npx playwright install --with-deps chromium firefox webkit
       - run: npm run build
       - run: npm run build:pages
-      - run: npm run e2e
+      # Xvfb gives headed Firefox a display, which is the only way it gets WebGL on a Linux runner.
+      - run: xvfb-run --auto-servernum -- npm run e2e
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
