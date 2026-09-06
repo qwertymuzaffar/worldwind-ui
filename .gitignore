@@ -9,3 +9,5 @@ coverage/
 .eslintcache
 .angular/
 _site/
+playwright-report/
+test-results/

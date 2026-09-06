@@ -74,7 +74,8 @@ import { GlobeController, scriptLoader } from 'worldwind-kit';
 const globe = await GlobeController.create(host, options, { loader: scriptLoader() });
 ```
 
-`unevalWebpackModules(code)` is the underlying transform, for other bundlers.
+`unevalWebpackModules(code)` is the underlying transform, for other bundlers. The rolldown bug is
+reported at https://github.com/rolldown/rolldown/issues/10826.
 
 ## Testing without WebGL
 

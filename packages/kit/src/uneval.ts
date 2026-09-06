@@ -6,6 +6,7 @@
  * which powers Vite 8) rename those parameters even though a direct `eval` reads them by
  * name, so the evaluated code writes `exports.x` onto the wrong object and WorldWind fails at
  * runtime with errors such as `utils.inherits is not a function`.
+ * Reported upstream: https://github.com/rolldown/rolldown/issues/10826
  *
  * {@link unevalWebpackModules} rewrites each `eval("<source>")` into an inline function so
  * the identifiers are visible to the bundler and renamed consistently.

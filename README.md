@@ -99,7 +99,8 @@ import { scriptLoader } from 'worldwind-kit';
 ```
 
 `unevalWebpackModules()` from `worldwind-kit/vite` is the plain string transform, usable from
-any other bundler's loader or plugin API. Webpack and the Vite dev server need neither.
+any other bundler's loader or plugin API. Webpack and the Vite dev server need neither. The bug is
+reported at [rolldown#10826](https://github.com/rolldown/rolldown/issues/10826).
 
 ## Repository
 
@@ -120,6 +121,7 @@ npm run build        # kit -> react -> angular
 npm test             # kit + react + angular suites
 npm run lint && npm run typecheck
 npm run pack:check   # what would be published
+npm run build:pages && npm run e2e   # browser tests against the assembled demo site
 npm run dev -w react-demo
 npm run dev -w angular-demo
 npm run build:pages  # both demos + landing page in _site/, as deployed to GitHub Pages

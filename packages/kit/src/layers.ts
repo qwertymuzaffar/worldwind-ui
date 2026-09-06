@@ -96,6 +96,7 @@ export function createBuiltInLayer(
       break;
     case 'osm':
       // Despite its docs, WorldWind uses the argument as the WMS layer name and throws without it.
+      // Reported upstream: https://github.com/NASAWorldWind/WebWorldWind/issues/907
       layer = new worldWind.OpenStreetMapImageLayer('osm');
       break;
     case 'atmosphere':
