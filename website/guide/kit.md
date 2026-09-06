@@ -73,6 +73,7 @@ onBeforeUnmount(() => globe?.destroy());
 - **Picking**: `pickAt` and `PickDispatcher`. WorldWind lets only one gesture recognizer claim a click, so the dispatcher shares one recognizer set per event type across every subscriber.
 - **Shapes**: `createPlacemark`, `createPath`, `createPolygon`, `createSurfacePolyline`, `createSurfacePolygon`, `createSurfaceCircle`, `createGeographicText`, each with an `update*` counterpart that changes the shape in place.
 - **Tools**: `MeasureTool`, `ShapeEventRegistry`, `geocode`, `parseLatLon`, `rangeForBoundingBox`.
+- **Widget data**: `trackScaleBar`, `computeScaleBar`, `layerAttribution`, `collectAttributions`, `layerLegend`, `collectLegends`, `parseTimeDimension`, `resolveTimeDimension`, `setLayerTime`.
 - **Helpers**: `formatLatLon`, `formatDistance`, `formatArea`, `greatCircleDistanceMeters`, `toColor`, `parseCssColor`.
 - **Types**: `WorldWindStatic` and the `WW*` interfaces describe the WorldWind objects the kit uses; everything else stays reachable as `any`.
 

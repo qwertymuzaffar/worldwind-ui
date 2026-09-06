@@ -36,3 +36,17 @@ export function deepEqual(a: unknown, b: unknown, depth = 8): boolean {
   }
   return true;
 }
+
+let nextLayerKey = 1;
+const layerKeys = new WeakMap<object, number>();
+
+/** A stable React key for a WorldWind layer (or any object) across renders. */
+export function layerKey(layer: object): number {
+  let key = layerKeys.get(layer);
+  if (key === undefined) {
+    key = nextLayerKey;
+    nextLayerKey += 1;
+    layerKeys.set(layer, key);
+  }
+  return key;
+}

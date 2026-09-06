@@ -67,13 +67,22 @@ for (const [framework, path] of [
       const errors = collectErrors(page);
       await page.goto(path);
       await expect(page.locator('canvas')).toHaveCount(1);
-      await expect(page.locator('.wwui-layer-switcher input[type=checkbox]')).toHaveCount(6);
+      await expect(page.locator('.wwui-layer-switcher input[type=checkbox]')).toHaveCount(7);
       await expect(page.locator('.wwui-layer-switcher')).toContainText('Blue Marble & Landsat');
       await expect(page.locator('.wwui-layer-switcher')).toContainText('Airports');
+      await expect(page.locator('.wwui-layer-switcher')).toContainText('MODIS Terra (daily)');
       expect(await page.evaluate(() => Boolean(document.querySelector('canvas')?.getContext('webgl')))).toBe(true);
       await expect(page.getByLabel('Go to location')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Zoom in' })).toBeVisible();
       await expect(page.locator('.wwui-coords-panel .wwui-coords')).toContainText('16,000 km');
+
+      // The new widgets: scale bar, compass, credits, legend and time slider.
+      await expect(page.locator('.wwui-scale-panel')).toHaveAttribute('aria-label', /^Scale: [\d,.]+ km$/);
+      await expect(page.locator('.wwui-compass')).toHaveAttribute('data-heading', '0');
+      await expect(page.getByRole('contentinfo', { name: 'Map credits' })).toContainText('Imagery: NASA');
+      await expect(page.getByRole('link', { name: 'worldwind-ui' })).toHaveAttribute('href', 'https://github.com/qwertymuzaffar/worldwind-ui');
+      await expect(page.getByAltText('Airports legend')).toBeVisible();
+      await expect(page.locator('.wwui-time__label')).toHaveText(/^\d{4}-\d{2}-\d{2}$/);
       expect(errors).toEqual([]);
     });
 
@@ -98,18 +107,47 @@ for (const [framework, path] of [
       await input.fill('35.68, 139.69');
       await input.press('Enter');
       await expect(readout).toContainText('200 km');
+      // The flight ends when both the range and the location have arrived; zooming earlier gets overwritten by its last frame.
+      await page.waitForFunction(() => {
+        const camera = window.worldwindDemo!.globe.camera.get();
+        return Math.abs(camera.range - 200_000) < 1 && Math.abs(camera.latitude - 35.68) < 0.01 && Math.abs(camera.longitude - 139.69) < 0.01;
+      });
 
       const osm = page.getByLabel('OpenStreetMap', { exact: true });
       await osm.check();
       await expect(osm).toBeChecked();
 
+      const scale = page.locator('.wwui-scale-panel');
+      const scaleBefore = await scale.getAttribute('aria-label');
       await page.getByRole('button', { name: 'Zoom in' }).click();
       await expect(readout).toContainText('100 km');
+      await expect(scale).not.toHaveAttribute('aria-label', scaleBefore!);
 
-      // Keyboard navigation on the focused canvas: minus zooms out by 1.5x.
+      // Keyboard navigation on the focused canvas: minus zooms out by 1.5x, Shift+arrow rotates by 10 degrees.
       await page.locator('canvas').focus();
       await page.keyboard.press('-');
       await expect(readout).toContainText('150 km');
+      const compass = page.locator('.wwui-compass');
+      await page.keyboard.press('Shift+ArrowRight');
+      await expect(compass).toHaveAttribute('data-heading', /^(10|350)$/);
+      await compass.click();
+      await expect(compass).toHaveAttribute('data-heading', '0');
+
+      // The time slider steps the MODIS layer's TIME parameter one day at a time.
+      const timeLabel = page.locator('.wwui-time__label');
+      const dayBefore = await timeLabel.textContent();
+      await page.getByLabel('Time', { exact: true }).focus();
+      await page.keyboard.press('ArrowLeft');
+      await expect(timeLabel).not.toHaveText(dayBefore!);
+      const day = await timeLabel.textContent();
+      expect(await page.evaluate(() => window.worldwindDemo!.globe.layers.find('MODIS Terra (daily)')?.timeString)).toBe(day);
+
+      // Switching the airports off removes their legend; the credits stay.
+      const airports = page.getByLabel('Airports', { exact: true });
+      await airports.uncheck();
+      await expect(page.getByAltText('Airports legend')).toHaveCount(0);
+      await airports.check();
+      await expect(page.getByAltText('Airports legend')).toBeVisible();
 
       const mercator = page.getByRole('button', { name: 'Mercator', exact: true });
       await mercator.click();

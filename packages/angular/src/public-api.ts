@@ -35,6 +35,11 @@ export { WwCoordinatesComponent } from './lib/ui/coordinates.component';
 export { WwMeasureToolComponent } from './lib/ui/measure-tool.component';
 export { WwProjectionSwitcherComponent } from './lib/ui/projection-switcher.component';
 export { WwPopupComponent, type WwPopupAnchor } from './lib/ui/popup.component';
+export { WwScaleBarComponent } from './lib/ui/scale-bar.component';
+export { WwCompassComponent } from './lib/ui/compass.component';
+export { WwAttributionComponent } from './lib/ui/attribution.component';
+export { WwLegendComponent } from './lib/ui/legend.component';
+export { WwTimeSliderComponent } from './lib/ui/time-slider.component';
 
 import { WwCameraDirective } from './lib/camera.directive';
 import { WwGlobeComponent } from './lib/globe.component';
@@ -64,6 +69,11 @@ import { WwProjectionSwitcherComponent } from './lib/ui/projection-switcher.comp
 import { WwPopupComponent } from './lib/ui/popup.component';
 import { WwNavigationControlsComponent } from './lib/ui/navigation-controls.component';
 import { WwPanelComponent } from './lib/ui/panel.component';
+import { WwScaleBarComponent } from './lib/ui/scale-bar.component';
+import { WwCompassComponent } from './lib/ui/compass.component';
+import { WwAttributionComponent } from './lib/ui/attribution.component';
+import { WwLegendComponent } from './lib/ui/legend.component';
+import { WwTimeSliderComponent } from './lib/ui/time-slider.component';
 
 /** Every component and directive, for `imports: [...WORLDWIND_COMPONENTS]`.
  * @category Globe
@@ -93,4 +103,9 @@ export const WORLDWIND_COMPONENTS = [
   WwMeasureToolComponent,
   WwProjectionSwitcherComponent,
   WwPopupComponent,
+  WwScaleBarComponent,
+  WwCompassComponent,
+  WwAttributionComponent,
+  WwLegendComponent,
+  WwTimeSliderComponent,
 ] as const;

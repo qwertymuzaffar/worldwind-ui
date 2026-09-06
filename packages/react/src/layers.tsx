@@ -58,6 +58,9 @@ export function WmsLayer(props: WmsLayerProps) {
     pickEnabled,
     minActiveAltitude,
     maxActiveAltitude,
+    attribution,
+    legend,
+    timeDimension,
     fromCapabilities,
     onError,
     ...config
@@ -74,7 +77,7 @@ export function WmsLayer(props: WmsLayerProps) {
           })
         : createWmsLayer(globe.worldWind, { ...config, displayName }),
     [configKey],
-    { index, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, onError },
+    { index, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, attribution, legend, timeDimension, onError },
   );
   return null;
 }
@@ -97,6 +100,9 @@ export function WmtsLayer(props: WmtsLayerProps) {
     pickEnabled,
     minActiveAltitude,
     maxActiveAltitude,
+    attribution,
+    legend,
+    timeDimension,
     onError,
     ...source
   } = props;
@@ -104,7 +110,7 @@ export function WmtsLayer(props: WmtsLayerProps) {
   useLayer(
     (globe) => createWmtsLayerFromCapabilities(globe.worldWind, { ...source, displayName }),
     [sourceKey],
-    { index, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, onError },
+    { index, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, attribution, legend, timeDimension, onError },
   );
   return null;
 }

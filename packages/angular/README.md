@@ -74,6 +74,7 @@ export class MapComponent {
 | `ww-camera` | Declarative camera: `latitude`, `longitude`, `range`, `heading`, `tilt`, `animate`. |
 | `ww-panel` | A floating corner card (`position`, `heading`). |
 | `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher` | Ready-made widgets. |
+| `ww-scale-bar`, `ww-compass`, `ww-attribution`, `ww-legend`, `ww-time-slider` | Scale, heading, credits, legends and a time dimension slider. |
 
 \* Bing layers need `bingMapsKey` in `options`.
 

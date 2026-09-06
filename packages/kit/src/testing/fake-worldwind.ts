@@ -200,8 +200,14 @@ export class FakeLayer {
   inCurrentFrame = false;
   /** Constructor arguments, so tests can assert what a layer was created with. */
   constructorArgs: unknown[] = [];
+  /** How often `refresh()` was called (WorldWind expires the layer's imagery on refresh). */
+  refreshCount = 0;
 
   constructor(public displayName = 'Layer') {}
+
+  refresh(): void {
+    this.refreshCount += 1;
+  }
 }
 
 export class FakeRenderableLayer extends FakeLayer {
@@ -239,12 +245,18 @@ function builtInLayer(displayName: string) {
 }
 
 export class FakeWmsLayer extends FakeLayer {
+  /** Like WorldWind's WmsUrlBuilder, holds the TIME value used in requests. */
+  urlBuilder: { timeString: string | null };
+  cachePath: string;
+
   constructor(
     public config: any,
     public timeString: string | null = null,
   ) {
     super(config?.title ?? config?.layerNames ?? 'WMS');
     this.constructorArgs = [config, timeString];
+    this.urlBuilder = { timeString };
+    this.cachePath = `${config?.service ?? ''}${config?.layerNames ?? ''}${timeString ?? ''}`;
   }
 
   /** Mirrors WorldWind: builds a layer config from a capabilities layer. */
@@ -290,13 +302,61 @@ function childText(element: Element, localName: string): string {
   return '';
 }
 
-/** Reads `<Layer><Name>` / `<Title>` pairs from a WMS capabilities document. */
+function childElements(element: Element, localName: string): Element[] {
+  return Array.from(element.children).filter((child) => child.localName === localName);
+}
+
+function href(element: Element | undefined): string | undefined {
+  return element?.getAttribute('xlink:href') ?? element?.getAttribute('href') ?? undefined;
+}
+
+export interface FakeWmsLayerCapabilities {
+  name: string;
+  title: string;
+  /** Like WorldWind: each style lists `legendUrls` of `{ url, width, height, format }`. */
+  styles?: Array<{ name: string; title: string; legendUrls?: Array<{ url?: string; width?: number; height?: number; format?: string }> }>;
+  attribution?: { title?: string; url?: string };
+  /** WMS 1.3.0 `<Dimension>` elements with content. */
+  dimensions?: Array<{ name: string | null; units: string | null; default: string | null; content: string }>;
+  /** WMS 1.1.1 `<Extent>` elements. */
+  extents?: Array<{ name: string | null; units: string | null; default: string | null; content: string }>;
+}
+
+/** Reads `<Layer>` names, titles, styles with legends, attribution and time dimensions from a WMS capabilities document. */
 export class FakeWmsCapabilities {
-  readonly layers: Array<{ name: string; title: string }>;
+  readonly layers: FakeWmsLayerCapabilities[];
 
   constructor(public xmlDom: Document) {
     this.layers = Array.from(xmlDom.querySelectorAll('Layer'))
-      .map((layer) => ({ name: childText(layer, 'Name'), title: childText(layer, 'Title') }))
+      .map((layer): FakeWmsLayerCapabilities => {
+        const result: FakeWmsLayerCapabilities = { name: childText(layer, 'Name'), title: childText(layer, 'Title') };
+        const styles = childElements(layer, 'Style').map((style) => ({
+          name: childText(style, 'Name'),
+          title: childText(style, 'Title'),
+          legendUrls: childElements(style, 'LegendURL').map((legend) => ({
+            url: href(childElements(legend, 'OnlineResource')[0]),
+            width: Number(legend.getAttribute('width')) || undefined,
+            height: Number(legend.getAttribute('height')) || undefined,
+            format: childText(legend, 'Format') || undefined,
+          })),
+        }));
+        if (styles.length) result.styles = styles;
+        const attribution = childElements(layer, 'Attribution')[0];
+        if (attribution) {
+          result.attribution = { title: childText(attribution, 'Title') || undefined, url: href(childElements(attribution, 'OnlineResource')[0]) };
+        }
+        const dimension = (element: Element) => ({
+          name: element.getAttribute('name'),
+          units: element.getAttribute('units'),
+          default: element.getAttribute('default'),
+          content: element.textContent?.trim() ?? '',
+        });
+        const dimensions = childElements(layer, 'Dimension').filter((d) => d.textContent?.trim()).map(dimension);
+        if (dimensions.length) result.dimensions = dimensions;
+        const extents = childElements(layer, 'Extent').map(dimension);
+        if (extents.length) result.extents = extents;
+        return result;
+      })
       .filter((layer) => layer.name);
   }
 
@@ -309,14 +369,42 @@ export class FakeWmsCapabilities {
   }
 }
 
-/** Reads `<Layer><ows:Identifier>` / `<ows:Title>` pairs from a WMTS capabilities document. */
+export interface FakeWmtsLayerCapabilities {
+  identifier: string;
+  title: string;
+  /** Like WorldWind: `style[].legendUrl[]` entries with `href`. */
+  style?: Array<{ identifier: string; isDefault: string | null; legendUrl?: Array<{ href?: string; width?: string | null; height?: string | null; format?: string | null }> }>;
+  dimension?: Array<{ identifier: string; default: string | null; value?: string[] }>;
+}
+
+/** Reads `<Layer>` identifiers, titles, styles with legends and dimensions from a WMTS capabilities document. */
 export class FakeWmtsCapabilities {
-  readonly contents: { layer: Array<{ identifier: string; title: string }> };
+  readonly contents: { layer: FakeWmtsLayerCapabilities[] };
 
   constructor(public xmlDom: Document) {
     this.contents = {
       layer: Array.from(xmlDom.querySelectorAll('Layer'))
-        .map((layer) => ({ identifier: childText(layer, 'Identifier'), title: childText(layer, 'Title') }))
+        .map((layer): FakeWmtsLayerCapabilities => {
+          const result: FakeWmtsLayerCapabilities = { identifier: childText(layer, 'Identifier'), title: childText(layer, 'Title') };
+          const style = childElements(layer, 'Style').map((element) => ({
+            identifier: childText(element, 'Identifier'),
+            isDefault: element.getAttribute('isDefault'),
+            legendUrl: childElements(element, 'LegendURL').map((legend) => ({
+              href: href(legend),
+              width: legend.getAttribute('width'),
+              height: legend.getAttribute('height'),
+              format: legend.getAttribute('format'),
+            })),
+          }));
+          if (style.length) result.style = style;
+          const dimension = childElements(layer, 'Dimension').map((element) => ({
+            identifier: childText(element, 'Identifier'),
+            default: childText(element, 'Default') || null,
+            value: childElements(element, 'Value').map((value) => value.textContent?.trim() ?? ''),
+          }));
+          if (dimension.length) result.dimension = dimension;
+          return result;
+        })
         .filter((layer) => layer.identifier),
     };
   }
@@ -727,6 +815,9 @@ export class FakeWorldWindow {
     this.drawContext = {
       /** Fake viewport in drawing-buffer pixels; `project` maps longitude/latitude linearly onto it. */
       viewport: { x: 0, y: 0, width: 800, height: 600 },
+      /** Metres per pixel = range / 1000, so a 10,000 km range gives 10 km per pixel. */
+      pixelSizeFactor: 1e-3,
+      pixelSizeOffset: 0,
       modelviewProjection: 'fake',
       eyePoint: new FakeVec3(0, 0, 1e7),
       project: (point: FakeVec3, result: FakeVec3) => {

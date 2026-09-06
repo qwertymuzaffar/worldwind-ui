@@ -12,6 +12,7 @@ import {
 import { PickDispatcher, pickAt, type PickEventType, type PickHandler, type PickOptions, type PickResult } from './picking';
 import type { LatLonAlt } from './geo';
 import { attachKeyboardNavigation, type KeyboardNavigationOptions } from './keyboard';
+import { trackScaleBar, type ScaleBarOptions, type ScaleBarState } from './scale';
 import { toScreen, trackScreenPosition, type ScreenPoint } from './screen';
 import { loadWorldWind, type LoadWorldWindOptions } from './worldwind';
 import type { WWLayer, WWRenderableLayer, WWWorldWindow, WorldWindStatic } from './worldwind-types';
@@ -200,6 +201,11 @@ export class GlobeController {
   /** Follows a position across frames; the listener fires whenever its screen point changes. */
   trackPosition(position: LatLonAlt, listener: (point: ScreenPoint | null) => void): Unsubscribe {
     return this.track(trackScreenPosition(this.worldWind, this.wwd, position, listener));
+  }
+
+  /** The map scale at the view centre, now and after every frame in which it changed. */
+  trackScale(listener: (state: ScaleBarState | null) => void, options: ScaleBarOptions = {}): Unsubscribe {
+    return this.track(trackScaleBar(this.worldWind, this.wwd, listener, options));
   }
 
   /** Raw DOM events on the canvas (`wheel`, `mousemove`, `touchstart`, ...). */

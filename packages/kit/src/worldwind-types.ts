@@ -295,6 +295,8 @@ export interface WWWorldWindow {
   pickTerrain(point: WWVec2): WWPickedObjectList;
   canvasCoordinates(clientX: number, clientY: number): WWVec2;
   goTo(position: WWLocation | WWPosition, completionCallback?: () => void): void;
+  /** Metres per drawing-buffer pixel at a distance from the eye. */
+  pixelSizeAtDistance?(distance: number): number;
   addEventListener(type: string, listener: (event: any) => void): void;
   removeEventListener(type: string, listener: (event: any) => void): void;
   onGestureEvent(event: Event): void;

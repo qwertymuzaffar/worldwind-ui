@@ -22,8 +22,11 @@ export {
   useHoverPick,
   useLayer,
   useLayers,
+  useAttributions,
+  useLegends,
   useMeasureTool,
   useProjection,
+  useScaleBar,
   type UseCameraResult,
   type UseLayerOptions,
   type UseMeasureToolResult,
@@ -71,3 +74,8 @@ export { CoordinatesReadout, type CoordinatesReadoutProps } from './ui/Coordinat
 export { MeasureTool, type MeasureToolProps } from './ui/MeasureTool';
 export { ProjectionSwitcher, type ProjectionSwitcherProps } from './ui/ProjectionSwitcher';
 export { Popup, type PopupAnchor, type PopupProps } from './ui/Popup';
+export { ScaleBar, type ScaleBarProps } from './ui/ScaleBar';
+export { Compass, type CompassProps } from './ui/Compass';
+export { Attribution, type AttributionProps } from './ui/Attribution';
+export { Legend, type LegendProps } from './ui/Legend';
+export { TimeSlider, type TimeSliderProps } from './ui/TimeSlider';

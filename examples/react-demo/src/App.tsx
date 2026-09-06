@@ -1,12 +1,16 @@
 import { useState } from 'react';
 import {
+  Attribution,
   Camera,
+  Compass,
   CoordinatesReadout,
+  DAY_MS,
   GeoJsonLayer,
   Globe,
   GoToBox,
   Layer,
   LayerSwitcher,
+  Legend,
   MeasureTool,
   NavigationControls,
   Panel,
@@ -15,11 +19,15 @@ import {
   Popup,
   ProjectionSwitcher,
   RenderableLayer,
+  ScaleBar,
   SurfaceCircle,
+  TimeSlider,
+  WmsLayer,
   formatLatLon,
   type GlobeController,
   type LatLonAlt,
   type PickEvent,
+  type TimeDimension,
 } from 'react-worldwind';
 
 declare global {
@@ -69,6 +77,29 @@ const AIRPORTS = {
   ],
 };
 
+/** Legend for the airports layer: an inline SVG, so any image URL works. */
+const AIRPORT_LEGEND = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="54" font-family="sans-serif" font-size="11" fill="#f1f5f9">` +
+    `<circle cx="8" cy="10" r="5" fill="#f59e0b"/><text x="20" y="14">Busy airport</text>` +
+    `<circle cx="8" cy="28" r="5" fill="#ffffff"/><text x="20" y="32">Quiet airport</text>` +
+    `<rect x="3" y="41" width="10" height="10" fill="rgba(251,191,36,0.3)" stroke="#fbbf24"/><text x="20" y="50">Track area</text></svg>`,
+)}`;
+
+/** NASA GIBS serves daily MODIS imagery over WMS; the TIME parameter picks the day. */
+const GIBS = {
+  service: 'https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi',
+  layerNames: 'MODIS_Terra_CorrectedReflectance_TrueColor',
+  attribution: { text: 'NASA GIBS', url: 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api' },
+};
+
+/** The last 30 days up to yesterday (GIBS publishes with about a day of latency). */
+function recentDays(): TimeDimension {
+  const now = new Date();
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
+  return { start: new Date(end.getTime() - 29 * DAY_MS), end, stepMs: DAY_MS };
+}
+const MODIS_DAYS = recentDays();
+
 export function App() {
   const [selected, setSelected] = useState<(typeof CITIES)[number] | null>(null);
   const [lastClick, setLastClick] = useState<PickEvent | null>(null);
@@ -90,6 +121,16 @@ export function App() {
       }}
     >
       <Layer kind="osm" enabled={false} />
+      <WmsLayer
+        service={GIBS.service}
+        layerNames={GIBS.layerNames}
+        displayName="MODIS Terra (daily)"
+        format="image/jpeg"
+        numLevels={10}
+        enabled={false}
+        timeDimension={MODIS_DAYS}
+        attribution={GIBS.attribution}
+      />
       <Camera latitude={target.latitude} longitude={target.longitude} range={selected ? 1.5e6 : 1.6e7} animate={2000} />
 
       <RenderableLayer name="Cities">
@@ -112,6 +153,7 @@ export function App() {
       <GeoJsonLayer
         source={AIRPORTS}
         name="Airports"
+        legend={{ url: AIRPORT_LEGEND, width: 150, height: 54 }}
         style={({ properties, geometryType }) =>
           geometryType === 'Point'
             ? { point: { pushpin: properties.busy ? 'orange' : 'white', labelProperty: 'name', imageScale: 0.8 } }
@@ -133,6 +175,11 @@ export function App() {
       <NavigationControls position="top-right" home={{ latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 }} />
       <CoordinatesReadout position="bottom-left" />
       <ProjectionSwitcher position="top-right" className="wwui-panel--beside-nav" />
+      <Compass position="top-right" className="wwui-panel--below-nav" />
+      <TimeSlider position="bottom-center" className="wwui-panel--above-scale" />
+      <Legend position="bottom-left" className="wwui-panel--above-status" />
+      <ScaleBar position="bottom-center" className="wwui-panel--above-attribution" />
+      <Attribution position="bottom-center" extra={[{ text: 'worldwind-ui', url: 'https://github.com/qwertymuzaffar/worldwind-ui' }]} />
 
       <Panel position="bottom-left" className="wwui-panel--above-coords">
         <p className="wwui-goto__status" style={{ margin: 0 }}>

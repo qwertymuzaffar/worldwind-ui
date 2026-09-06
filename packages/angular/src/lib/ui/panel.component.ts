@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 /** @category Widgets */
-export type WwPanelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+export type WwPanelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center';
 
 /** A floating card in one corner of the globe. Styled by `ngx-worldwind/styles.css`.
  * @category Widgets

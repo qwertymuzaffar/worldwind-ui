@@ -1,4 +1,5 @@
 import { createEmitter, type Unsubscribe } from './events';
+import { setLayerTime, setLayerTimeDimension, type TimeDimension, type TimeFormat } from './time';
 import type { WWLayer, WWWmsLayerConfig, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
 /** Layers that WorldWind ships with, addressable by a short name.
@@ -53,6 +54,25 @@ export const OVERLAY_LAYER_KINDS: readonly BuiltInLayerKind[] = [
 /** @category Layers */
 export const BING_LAYER_KINDS: readonly BuiltInLayerKind[] = ['bing-aerial', 'bing-aerial-labels', 'bing-roads'];
 
+/** A credit line for a layer's data, shown by attribution widgets.
+ * @category Attribution
+ */
+export interface LayerAttribution {
+  text: string;
+  url?: string;
+}
+
+/** A legend image for a layer, shown by legend widgets.
+ * @category Legend
+ */
+export interface LayerLegend {
+  url: string;
+  width?: number;
+  height?: number;
+  /** MIME type, e.g. `image/png`. */
+  format?: string;
+}
+
 /** @category Layers */
 export interface LayerOptions {
   displayName?: string;
@@ -62,6 +82,12 @@ export interface LayerOptions {
   pickEnabled?: boolean;
   minActiveAltitude?: number;
   maxActiveAltitude?: number;
+  /** Credit for the layer's data; `null` suppresses the default of a built-in layer. */
+  attribution?: string | LayerAttribution | null;
+  /** Legend image URL or descriptor. */
+  legend?: string | LayerLegend | null;
+  /** The instants the layer can show, for time sliders. Read from capabilities when available. */
+  timeDimension?: TimeDimension | null;
 }
 
 /** @category Layers */
@@ -72,6 +98,9 @@ export function applyLayerOptions<L extends WWLayer>(layer: L, options: LayerOpt
   if (options.pickEnabled !== undefined) layer.pickEnabled = options.pickEnabled;
   if (options.minActiveAltitude !== undefined) layer.minActiveAltitude = options.minActiveAltitude;
   if (options.maxActiveAltitude !== undefined) layer.maxActiveAltitude = options.maxActiveAltitude;
+  if (options.attribution !== undefined) setLayerAttribution(layer, options.attribution);
+  if (options.legend !== undefined) setLayerLegend(layer, options.legend);
+  if (options.timeDimension !== undefined) setLayerTimeDimension(layer, options.timeDimension);
   return layer;
 }
 
@@ -178,6 +207,32 @@ export function markInternalLayer<L extends WWLayer>(layer: L): L {
 /** @category Layers */
 export function isInternalLayer(layer: WWLayer): boolean {
   return layer[INTERNAL_LAYER_KEY] === true;
+}
+
+/** Property under which {@link setLayerAttribution} records a layer's credit.
+ * @category Attribution
+ */
+export const ATTRIBUTION_KEY = '__wwuiAttribution';
+
+/** Records the credit a layer should display; `null` hides the built-in default.
+ * @category Attribution
+ */
+export function setLayerAttribution<L extends WWLayer>(layer: L, attribution: string | LayerAttribution | null): L {
+  (layer as WWLayer)[ATTRIBUTION_KEY] = typeof attribution === 'string' ? { text: attribution } : attribution;
+  return layer;
+}
+
+/** Property under which {@link setLayerLegend} records a layer's legend.
+ * @category Legend
+ */
+export const LEGEND_KEY = '__wwuiLegend';
+
+/** Records the legend image of a layer (done automatically for layers built from capabilities).
+ * @category Legend
+ */
+export function setLayerLegend<L extends WWLayer>(layer: L, legend: string | LayerLegend | null): L {
+  (layer as WWLayer)[LEGEND_KEY] = typeof legend === 'string' ? { url: legend } : legend;
+  return layer;
 }
 
 /** @category Layers */
@@ -345,6 +400,13 @@ export class LayerManager {
 
   setOpacity(layer: WWLayer, opacity: number): void {
     this.update(layer, { opacity });
+  }
+
+  /** Changes the `TIME` a WMS or WMTS layer requests (see {@link setLayerTime}) and notifies. */
+  setTime(layer: WWLayer, time: Date | string | null, options: { format?: TimeFormat } = {}): string | null {
+    const value = setLayerTime(layer, time, options);
+    this.notify('update', layer);
+    return value;
   }
 
   clear(): void {

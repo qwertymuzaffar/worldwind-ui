@@ -2,7 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cx } from '../internal/utils';
 
 /** @category Widgets */
-export type PanelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+export type PanelPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top-center' | 'bottom-center';
 
 /** @category Widgets */
 export interface PanelProps extends HTMLAttributes<HTMLDivElement> {

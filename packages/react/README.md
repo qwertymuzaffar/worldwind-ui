@@ -58,6 +58,11 @@ export function Map() {
 | `<CoordinatesReadout>` | Position under the mouse and camera range. |
 | `<MeasureTool>` | Click-to-measure distances and areas. |
 | `<ProjectionSwitcher>` | Buttons for the 3D globe and the flat projections. |
+| `<ScaleBar>` | Round ground distance at the current zoom; metric, imperial or nautical. |
+| `<Compass>` | Rose that turns with the heading; click to face north. |
+| `<Attribution>` | Credits for the visible layers (NASA, OSM, Bing, WMS attribution, your own). |
+| `<Legend>` | Legend images from capabilities or a layer's `legend` option. |
+| `<TimeSlider>` | Steps time-enabled WMS/WMTS layers through their time dimension, with play. |
 
 \* Bing layers need `bingMapsKey` on `<Globe>`.
 

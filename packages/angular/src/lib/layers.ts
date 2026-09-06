@@ -22,8 +22,11 @@ import {
   type GeoJsonStyle,
   type GeoJsonStyleResolver,
   type GlobeController,
+  type LayerAttribution,
+  type LayerLegend,
   type LayerOptions,
   type SectorInput,
+  type TimeDimension,
   type WWLayer,
   type WWRenderableLayer,
 } from 'worldwind-kit';
@@ -44,6 +47,12 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
   readonly pickEnabled = input<boolean | undefined>(undefined);
   readonly minActiveAltitude = input<number | undefined>(undefined);
   readonly maxActiveAltitude = input<number | undefined>(undefined);
+  /** Credit for the layer's data (shown by `ww-attribution`); `null` hides a built-in default. */
+  readonly attribution = input<string | LayerAttribution | null | undefined>(undefined);
+  /** Legend image URL or descriptor (shown by `ww-legend`). */
+  readonly legend = input<string | LayerLegend | null | undefined>(undefined);
+  /** The instants the layer can show (used by `ww-time-slider`); read from capabilities when available. */
+  readonly timeDimension = input<TimeDimension | null | undefined>(undefined);
 
   /** Emits when an asynchronous `create` rejects. */
   readonly loadError = output<unknown>();
@@ -58,6 +67,9 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
     pickEnabled: this.pickEnabled(),
     minActiveAltitude: this.minActiveAltitude(),
     maxActiveAltitude: this.maxActiveAltitude(),
+    attribution: this.attribution(),
+    legend: this.legend(),
+    timeDimension: this.timeDimension(),
   }));
 
   constructor() {

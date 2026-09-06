@@ -2,16 +2,24 @@ import { useEffect, useMemo, useState, useSyncExternalStore, type DependencyList
 import {
   MeasureTool,
   applyLayerOptions,
+  collectAttributions,
+  collectLegends,
+  type CollectAttributionsOptions,
+  type CollectLegendsOptions,
   type CameraController,
   type CameraState,
   type GlobeController,
+  type LayerAttribution,
   type LayerOptions,
+  type LegendEntry,
   type MeasureToolOptions,
   type MeasurementState,
   type PickEventType,
   type PickHandler,
   type PickResult,
   type ProjectionKind,
+  type ScaleBarOptions,
+  type ScaleBarState,
   type WWLayer,
 } from 'worldwind-kit';
 import { useGlobe } from './context';
@@ -169,11 +177,24 @@ export function useLayer<L extends WWLayer>(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [globe, latest, ...deps]);
 
-  const { displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude } = options;
+  const { displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, attribution, legend, timeDimension } = options;
+  // Object-valued options are compared by content so inline literals do not churn the effect.
+  const metadataKey = JSON.stringify([attribution ?? null, legend ?? null, timeDimension ?? null]);
   useEffect(() => {
     if (!layer) return;
-    globe.layers.update(layer, { displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude });
-  }, [globe, layer, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude]);
+    globe.layers.update(layer, {
+      displayName,
+      enabled,
+      opacity,
+      pickEnabled,
+      minActiveAltitude,
+      maxActiveAltitude,
+      attribution,
+      legend,
+      timeDimension,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globe, layer, displayName, enabled, opacity, pickEnabled, minActiveAltitude, maxActiveAltitude, metadataKey]);
 
   return layer;
 }
@@ -250,4 +271,33 @@ export function useMeasureTool(options: MeasureToolOptions = {}): UseMeasureTool
     }),
     [state, tool],
   );
+}
+
+/** The map scale at the view centre, updated after every frame in which it changed. Null before the first frame.
+ * @category Hooks
+ */
+export function useScaleBar(options: ScaleBarOptions = {}): ScaleBarState | null {
+  const globe = useGlobe();
+  const { maxWidth, units } = options;
+  const [state, setState] = useState<ScaleBarState | null>(null);
+  useEffect(() => globe.trackScale(setState, { maxWidth, units }), [globe, maxWidth, units]);
+  return state;
+}
+
+/** The distinct credits of the globe's layers (enabled ones by default), updated on every layer change.
+ * @category Hooks
+ */
+export function useAttributions(options: CollectAttributionsOptions = {}): LayerAttribution[] {
+  const layers = useLayers();
+  const { enabledOnly } = options;
+  return useMemo(() => collectAttributions(layers, { enabledOnly }), [layers, enabledOnly]);
+}
+
+/** The layers that have a legend (enabled ones by default, top-most first), updated on every layer change.
+ * @category Hooks
+ */
+export function useLegends(options: CollectLegendsOptions = {}): LegendEntry[] {
+  const layers = useLayers();
+  const { enabledOnly, topFirst } = options;
+  return useMemo(() => collectLegends(layers, { enabledOnly, topFirst }), [layers, enabledOnly, topFirst]);
 }

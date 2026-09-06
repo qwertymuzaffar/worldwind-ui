@@ -61,7 +61,7 @@ Inside a `<RenderableLayer>`: `<Placemark>`, `<Path>`, `<Polygon>`, `<SurfacePol
 
 ## Widgets
 
-`<LayerSwitcher>`, `<NavigationControls>`, `<GoToBox>`, `<CoordinatesReadout>`, `<MeasureTool>` and `<ProjectionSwitcher>` each take a `position` corner and render into a `<Panel>`. They need `react-worldwind/styles.css`, and can be themed through the `--wwui-*` custom properties.
+`<LayerSwitcher>`, `<NavigationControls>`, `<GoToBox>`, `<CoordinatesReadout>`, `<MeasureTool>`, `<ProjectionSwitcher>`, `<ScaleBar>`, `<Compass>`, `<Attribution>`, `<Legend>` and `<TimeSlider>` each take a `position` and render into a `<Panel>`. They need `react-worldwind/styles.css`, and can be themed through the `--wwui-*` custom properties.
 
 ## Popups
 

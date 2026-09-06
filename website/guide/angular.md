@@ -39,7 +39,7 @@ Add `@import 'ngx-worldwind/styles.css';` to your global styles.
 | `ww-renderable-layer`, `ww-custom-layer` | Shape container, escape hatch |
 | `ww-placemark`, `ww-path`, `ww-polygon`, `ww-surface-polyline`, `ww-surface-polygon`, `ww-surface-circle`, `ww-geographic-text` | Shapes with `shapeClick`, `shapeDoubleClick`, `mouseEnter`, `mouseLeave` outputs and `highlightOnHover` |
 | `ww-camera` | Declarative camera |
-| `ww-panel`, `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher` | Widgets |
+| `ww-panel`, `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher`, `ww-scale-bar`, `ww-compass`, `ww-attribution`, `ww-legend`, `ww-time-slider` | Widgets |
 | `ww-popup` | Content anchored to a geographic position (`position`, `anchor`, `offset`, `heading`, `closable`, `(closed)`), following the globe |
 
 Layer components accept asynchronous factories and emit `loadError`. Hover outputs on shapes need `[hoverEvents]="true"`, because picking on every frame costs GPU time.

@@ -1,18 +1,8 @@
 import { isInternalLayer, isOverlayLayer, type WWLayer } from 'worldwind-kit';
 import { useGlobe } from '../context';
 import { useLayers } from '../hooks';
+import { layerKey } from '../internal/utils';
 import { Panel, type PanelPosition } from './Panel';
-
-let nextId = 1;
-const ids = new WeakMap<WWLayer, number>();
-function layerId(layer: WWLayer): number {
-  let id = ids.get(layer);
-  if (id === undefined) {
-    id = nextId++;
-    ids.set(layer, id);
-  }
-  return id;
-}
 
 /** @category Widgets */
 export interface LayerSwitcherProps {
@@ -51,7 +41,7 @@ export function LayerSwitcher({
     <Panel position={position} heading={heading} className={className}>
       <ul className="wwui-layer-switcher">
         {layers.map((layer) => {
-          const id = layerId(layer);
+          const id = layerKey(layer);
           return (
             <li key={id} className="wwui-layer-switcher__item">
               <label className="wwui-layer-switcher__label">
