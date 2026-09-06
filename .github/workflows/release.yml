@@ -74,8 +74,8 @@ jobs:
             status=$(curl -s -o /tmp/exchange.json -w '%{http_code}' -X POST -H "Accept: application/json" \
               -H "Authorization: Bearer $id_token" \
               "https://registry.npmjs.org/-/npm/v1/oidc/token/exchange/package/$pkg")
-            if [ "$status" = "200" ]; then
-              echo "  $pkg: trusted publisher accepted"
+            if [ "${status#2}" != "$status" ]; then
+              echo "  $pkg: trusted publisher accepted (HTTP $status)"
             else
               echo "  $pkg: npm rejected the token (HTTP $status): $(jq -r '.message // .error // "no message"' /tmp/exchange.json)"
               failed=1
