@@ -12,7 +12,7 @@
     "@angular/core": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@nasaworldwind/worldwind": "^0.11.1",
-    "ngx-worldwind": "^0.1.0",
+    "ngx-worldwind": "^0.1.1",
     "rxjs": "^7.8.0",
     "tslib": "^2.8.0"
   },
