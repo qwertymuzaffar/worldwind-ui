@@ -12,14 +12,22 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
-test('landing page links to both demos and shows the screenshot', async ({ page }) => {
+test('docs home links to the guide, the API and both demos', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('');
   await expect(page).toHaveTitle(/worldwind-ui/);
-  await expect(page.locator('a.card[href="react/"]')).toBeVisible();
-  await expect(page.locator('a.card[href="angular/"]')).toBeVisible();
-  const imageLoaded = await page.locator('img.shot').evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
+  await expect(page.getByRole('link', { name: 'Get started' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'React demo', exact: true }).first()).toHaveAttribute('href', '/worldwind-ui/react/');
+  await expect(page.getByRole('link', { name: 'Angular demo', exact: true }).first()).toHaveAttribute('href', '/worldwind-ui/angular/');
+  const imageLoaded = await page.locator('.VPHero img').first().evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0);
   expect(imageLoaded).toBe(true);
+
+  await page.getByRole('link', { name: 'Get started' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Getting started');
+  await page.goto('api/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('worldwind-ui API');
+  await page.goto('api/worldwind-kit/classes/GlobeController');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('GlobeController');
   expect(errors).toEqual([]);
 });
 

@@ -1,0 +1,19 @@
+{
+  "name": "website",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prebuild": "node -e \"require('fs').copyFileSync('../docs/screenshot.jpg','public/screenshot.jpg')\"",
+    "api": "typedoc",
+    "build": "npm run api && vitepress build",
+    "dev": "npm run api && vitepress dev",
+    "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.0",
+    "typedoc-vitepress-theme": "^1.1.3",
+    "vitepress": "^1.6.4"
+  }
+}

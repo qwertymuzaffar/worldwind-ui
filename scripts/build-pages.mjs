@@ -12,14 +12,15 @@ const run = (command, cwd, env = {}) => {
   execSync(command, { cwd, stdio: 'inherit', env: { ...process.env, NG_CLI_ANALYTICS: 'false', ...env } });
 };
 
+run('npm run build -w website', root);
 run('npm run build -w react-demo', root, { DEMO_BASE: `${base}react/` });
 run(`npx ng build --base-href ${base}angular/`, resolve(root, 'examples/angular-demo'));
 
 rmSync(site, { recursive: true, force: true });
 mkdirSync(site, { recursive: true });
+cpSync(resolve(root, 'website/.vitepress/dist'), site, { recursive: true });
 cpSync(resolve(root, 'examples/react-demo/dist'), resolve(site, 'react'), { recursive: true });
 cpSync(resolve(root, 'examples/angular-demo/dist/browser'), resolve(site, 'angular'), { recursive: true });
-cpSync(resolve(root, 'examples/pages/index.html'), resolve(site, 'index.html'));
 cpSync(resolve(root, 'docs/screenshot.jpg'), resolve(site, 'screenshot.jpg'));
 writeFileSync(resolve(site, '.nojekyll'), '');
 console.log(`\nSite assembled in ${site} for base ${base}`);

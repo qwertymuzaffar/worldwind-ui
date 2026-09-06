@@ -11,3 +11,7 @@ coverage/
 _site/
 playwright-report/
 test-results/
+website/api/
+website/.vitepress/dist/
+website/.vitepress/cache/
+website/public/screenshot.jpg

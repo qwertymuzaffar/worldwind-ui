@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "resolveJsonModule": true,
+    "types": [],
+    "paths": {
+      "worldwind-kit": ["../packages/kit/src/index.ts"],
+      "worldwind-kit/testing": ["../packages/kit/src/testing/index.ts"],
+      "worldwind-kit/vite": ["../packages/kit/src/vite.ts"]
+    }
+  },
+  "include": ["../packages/kit/src", "../packages/react/src", "../packages/angular/src"]
+}

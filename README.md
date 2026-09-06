@@ -5,7 +5,8 @@
 UI libraries for [NASA WorldWind](https://worldwind.arc.nasa.gov/web/), the open-source WebGL
 virtual globe. One framework-agnostic core, thin idiomatic adapters per framework.
 
-**Live demos:** [React](https://qwertymuzaffar.github.io/worldwind-ui/react/) ·
+**Docs:** https://qwertymuzaffar.github.io/worldwind-ui/ · **Live demos:**
+[React](https://qwertymuzaffar.github.io/worldwind-ui/react/) ·
 [Angular](https://qwertymuzaffar.github.io/worldwind-ui/angular/)
 
 [![The React demo: a 3D globe with layer switcher, navigation controls, go-to box and coordinates readout](docs/screenshot.jpg)](https://qwertymuzaffar.github.io/worldwind-ui/react/)
@@ -110,7 +111,7 @@ packages/react     react-worldwind    (tsup, vitest + Testing Library)
 packages/angular   ngx-worldwind      (ng-packagr, partial Ivy; vitest + TestBed via Analog)
 examples/react-demo                   (Vite playground)
 examples/angular-demo                 (Angular CLI playground, zoneless)
-examples/pages                        (landing page for the GitHub Pages deployment)
+website                               (VitePress docs + TypeDoc API pages; the Pages site root)
 ```
 
 Requires Node 22.22 or newer (Angular 22 and Vitest 5 need it; `.nvmrc` is set).
@@ -124,7 +125,8 @@ npm run pack:check   # what would be published
 npm run build:pages && npm run e2e   # browser tests against the assembled demo site
 npm run dev -w react-demo
 npm run dev -w angular-demo
-npm run build:pages  # both demos + landing page in _site/, as deployed to GitHub Pages
+npm run build:pages  # docs site + both demos in _site/, as deployed to GitHub Pages
+npm run dev -w website
 ```
 
 The `Demos` workflow deploys `_site/` to GitHub Pages on every push to `main`.

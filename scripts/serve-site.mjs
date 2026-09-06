@@ -24,6 +24,8 @@ createServer((request, response) => {
     return;
   }
   if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
+  // GitHub Pages serves /page for page.html; VitePress relies on that (cleanUrls).
+  if (!existsSync(file) && existsSync(`${file}.html`)) file = `${file}.html`;
   if (!existsSync(file)) {
     response.writeHead(404).end('not found');
     return;

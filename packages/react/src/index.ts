@@ -1,3 +1,6 @@
+/**
+ * @module react-worldwind
+ */
 export * from 'worldwind-kit';
 
 export { Globe, type GlobeProps } from './Globe';

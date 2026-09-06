@@ -1,3 +1,6 @@
+/**
+ * @module worldwind-kit
+ */
 export * from './assets';
 export * from './camera';
 export * from './capabilities';

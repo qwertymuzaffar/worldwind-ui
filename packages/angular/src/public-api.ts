@@ -1,3 +1,6 @@
+/**
+ * @module ngx-worldwind
+ */
 export * from 'worldwind-kit';
 
 export { WwGlobeComponent } from './lib/globe.component';
