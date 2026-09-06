@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>worldwind-ui demos</title>
+    <meta name="description" content="Live demos of react-worldwind and ngx-worldwind, UI libraries for NASA WorldWind." />
+    <style>
+      :root { color-scheme: dark; --bg: #0b1220; --fg: #f1f5f9; --muted: #94a3b8; --accent: #38bdf8; --card: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.12); }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+      main { max-width: 960px; margin: 0 auto; padding: 48px 24px 64px; }
+      h1 { font-size: 2rem; margin: 0 0 8px; }
+      h1 small { color: var(--muted); font-weight: 400; font-size: 1rem; margin-left: 10px; }
+      p.lead { color: var(--muted); margin: 0 0 28px; max-width: 640px; }
+      img.shot { display: block; width: 100%; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 32px; }
+      .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+      a.card { display: block; padding: 20px; border-radius: 14px; background: var(--card); border: 1px solid var(--border); color: inherit; text-decoration: none; transition: border-color 120ms ease, transform 120ms ease; }
+      a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
+      a.card h2 { margin: 0 0 6px; font-size: 1.15rem; }
+      a.card span { color: var(--muted); font-size: 0.95rem; }
+      a.card code { color: var(--accent); font-size: 0.9rem; }
+      footer { margin-top: 36px; color: var(--muted); font-size: 0.9rem; }
+      footer a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>worldwind-ui <small>UI libraries for NASA WorldWind</small></h1>
+      <p class="lead">
+        One framework-agnostic core, thin adapters for React and Angular, ready-made widgets, and a fake WorldWind for tests. Both demos below are the real packages running in your browser.
+      </p>
+      <img class="shot" src="screenshot.jpg" alt="The react-worldwind demo: a 3D globe with layer switcher, navigation controls, go-to box and coordinates readout" width="1000" height="625" />
+      <div class="cards">
+        <a class="card" href="react/">
+          <h2>React demo</h2>
+          <span>Built with <code>react-worldwind</code>: components, hooks and widgets.</span>
+        </a>
+        <a class="card" href="angular/">
+          <h2>Angular demo</h2>
+          <span>Built with <code>ngx-worldwind</code>: standalone components with signal inputs, zoneless.</span>
+        </a>
+        <a class="card" href="https://www.npmjs.com/package/worldwind-kit">
+          <h2>worldwind-kit on npm</h2>
+          <span>The core: globe controller, layers, camera, picking, shapes, testing fake, Vite plugin.</span>
+        </a>
+        <a class="card" href="https://github.com/qwertymuzaffar/worldwind-ui">
+          <h2>Source on GitHub</h2>
+          <span>Monorepo, tests, CI and release automation. MIT licensed.</span>
+        </a>
+      </div>
+      <footer>Not affiliated with NASA. WorldWind is NASA's open-source virtual globe; imagery is served by NASA and OpenStreetMap.</footer>
+    </main>
+  </body>
+</html>

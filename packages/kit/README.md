@@ -4,6 +4,8 @@ Framework-agnostic TypeScript toolkit for [NASA WorldWind](https://worldwind.arc
 It is the core under [`react-worldwind`](https://www.npmjs.com/package/react-worldwind) and
 [`ngx-worldwind`](https://www.npmjs.com/package/ngx-worldwind), and usable on its own.
 
+**Live demos** (built on this kit): https://qwertymuzaffar.github.io/worldwind-ui/
+
 ```sh
 npm install worldwind-kit @nasaworldwind/worldwind
 ```

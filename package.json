@@ -24,7 +24,8 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "npm run build && changeset publish",
-    "build:examples": "npm run build -w react-demo -w angular-demo"
+    "build:examples": "npm run build -w react-demo -w angular-demo",
+    "build:pages": "node scripts/build-pages.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.2",

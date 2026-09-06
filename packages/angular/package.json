@@ -19,7 +19,7 @@
     "url": "git+https://github.com/qwertymuzaffar/worldwind-ui.git",
     "directory": "packages/angular"
   },
-  "homepage": "https://github.com/qwertymuzaffar/worldwind-ui/tree/main/packages/angular#readme",
+  "homepage": "https://qwertymuzaffar.github.io/worldwind-ui/angular/",
   "bugs": "https://github.com/qwertymuzaffar/worldwind-ui/issues",
   "scripts": {
     "build": "ng-packagr -p ng-package.json -c tsconfig.lib.json && node -e \"require('fs').copyFileSync('../kit/styles/worldwind-ui.css','dist/styles.css')\"",

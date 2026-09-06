@@ -19,7 +19,7 @@
     "url": "git+https://github.com/qwertymuzaffar/worldwind-ui.git",
     "directory": "packages/kit"
   },
-  "homepage": "https://github.com/qwertymuzaffar/worldwind-ui/tree/main/packages/kit#readme",
+  "homepage": "https://qwertymuzaffar.github.io/worldwind-ui/",
   "bugs": "https://github.com/qwertymuzaffar/worldwind-ui/issues",
   "type": "module",
   "sideEffects": false,

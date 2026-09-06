@@ -3,6 +3,8 @@
 React components and hooks for [NASA WorldWind](https://worldwind.arc.nasa.gov/web/), built on
 [`worldwind-kit`](https://www.npmjs.com/package/worldwind-kit).
 
+**Live demo:** https://qwertymuzaffar.github.io/worldwind-ui/react/
+
 ```sh
 npm install react-worldwind @nasaworldwind/worldwind
 ```

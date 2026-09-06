@@ -4,6 +4,8 @@ Angular standalone components and directives for [NASA WorldWind](https://worldw
 built on [`worldwind-kit`](https://www.npmjs.com/package/worldwind-kit). Signal inputs, `OnPush`,
 zoneless-ready.
 
+**Live demo:** https://qwertymuzaffar.github.io/worldwind-ui/angular/
+
 ```sh
 npm install ngx-worldwind @nasaworldwind/worldwind
 ```

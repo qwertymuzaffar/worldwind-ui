@@ -5,6 +5,11 @@
 UI libraries for [NASA WorldWind](https://worldwind.arc.nasa.gov/web/), the open-source WebGL
 virtual globe. One framework-agnostic core, thin idiomatic adapters per framework.
 
+**Live demos:** [React](https://qwertymuzaffar.github.io/worldwind-ui/react/) ·
+[Angular](https://qwertymuzaffar.github.io/worldwind-ui/angular/)
+
+[![The React demo: a 3D globe with layer switcher, navigation controls, go-to box and coordinates readout](docs/screenshot.jpg)](https://qwertymuzaffar.github.io/worldwind-ui/react/)
+
 | Package | What it is | Install |
 | --- | --- | --- |
 | [`worldwind-kit`](packages/kit) | Typed TypeScript toolkit: globe controller with a real `destroy()`, layer manager, camera, picking, shapes, geocoding, and a WebGL-free fake for tests | `npm i worldwind-kit @nasaworldwind/worldwind` |
@@ -104,6 +109,7 @@ packages/react     react-worldwind    (tsup, vitest + Testing Library)
 packages/angular   ngx-worldwind      (ng-packagr, partial Ivy; vitest + TestBed via Analog)
 examples/react-demo                   (Vite playground)
 examples/angular-demo                 (Angular CLI playground, zoneless)
+examples/pages                        (landing page for the GitHub Pages deployment)
 ```
 
 Requires Node 22.22 or newer (Angular 22 and Vitest 5 need it; `.nvmrc` is set).
@@ -116,7 +122,10 @@ npm run lint && npm run typecheck
 npm run pack:check   # what would be published
 npm run dev -w react-demo
 npm run dev -w angular-demo
+npm run build:pages  # both demos + landing page in _site/, as deployed to GitHub Pages
 ```
+
+The `Demos` workflow deploys `_site/` to GitHub Pages on every push to `main`.
 
 `.npmrc` sets `legacy-peer-deps=true`: `@angular/build` declares an optional peer dependency on
 Vitest 4 and npm 10 crashes on the conflict with the Vitest 5 used here instead of skipping it.

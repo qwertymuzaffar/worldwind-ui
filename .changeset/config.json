@@ -3,9 +3,18 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["worldwind-kit", "react-worldwind", "ngx-worldwind"]],
+  "linked": [
+    [
+      "worldwind-kit",
+      "react-worldwind",
+      "ngx-worldwind"
+    ]
+  ],
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["react-demo"]
+  "ignore": [
+    "react-demo",
+    "angular-demo"
+  ]
 }
