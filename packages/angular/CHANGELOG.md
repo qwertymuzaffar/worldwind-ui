@@ -1,5 +1,13 @@
 # ngx-worldwind
 
+## 0.2.1
+
+### Patch Changes
+
+- 7542bf7: The shared widget stylesheet now keeps panels inside the viewport on small screens, wraps the coordinates readout and lets a long layer switcher scroll. Doc comments gained categories and examples, which show up in editor tooltips.
+- Updated dependencies [7542bf7]
+  - worldwind-kit@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
