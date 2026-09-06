@@ -1,57 +1,73 @@
 import type { WWLocation, WWPosition, WorldWindStatic } from './worldwind-types';
 
+/** @category Geo utilities */
 export interface LatLon {
   latitude: number;
   longitude: number;
 }
 
+/** @category Geo utilities */
 export interface LatLonAlt extends LatLon {
   /** Metres. Defaults to 0 where a position is required. */
   altitude?: number;
 }
 
-/** WGS84 semi-major axis in metres, the radius WorldWind uses for the Earth. */
+/** WGS84 semi-major axis in metres, the radius WorldWind uses for the Earth.
+ * @category Geo utilities
+ */
 export const EARTH_RADIUS_METERS = 6378137;
 
 const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
 
+/** @category Geo utilities */
 export function toLocation(worldWind: WorldWindStatic, point: LatLon): WWLocation {
   return new worldWind.Location(point.latitude, point.longitude);
 }
 
+/** @category Geo utilities */
 export function toPosition(worldWind: WorldWindStatic, point: LatLonAlt): WWPosition {
   return new worldWind.Position(point.latitude, point.longitude, point.altitude ?? 0);
 }
 
+/** @category Geo utilities */
 export function toPositions(worldWind: WorldWindStatic, points: LatLonAlt[]): WWPosition[] {
   return points.map((p) => toPosition(worldWind, p));
 }
 
+/** @category Geo utilities */
 export function toLocations(worldWind: WorldWindStatic, points: LatLon[]): WWLocation[] {
   return points.map((p) => toLocation(worldWind, p));
 }
 
-/** Copies a WorldWind Location or Position into a plain object. */
+/** Copies a WorldWind Location or Position into a plain object.
+ * @category Geo utilities
+ */
 export function fromPosition(point: WWLocation | WWPosition): LatLonAlt {
   const result: LatLonAlt = { latitude: point.latitude, longitude: point.longitude };
   if ('altitude' in point && typeof point.altitude === 'number') result.altitude = point.altitude;
   return result;
 }
 
-/** Wraps a longitude into [-180, 180]. */
+/** Wraps a longitude into [-180, 180].
+ * @category Geo utilities
+ */
 export function normalizeLongitude(longitude: number): number {
   if (!Number.isFinite(longitude) || (longitude >= -180 && longitude <= 180)) return longitude;
   const wrapped = ((((longitude + 180) % 360) + 360) % 360) - 180;
   return wrapped === -180 && longitude > 0 ? 180 : wrapped;
 }
 
-/** Clamps a latitude into [-90, 90]. */
+/** Clamps a latitude into [-90, 90].
+ * @category Geo utilities
+ */
 export function clampLatitude(latitude: number): number {
   return Math.max(-90, Math.min(90, latitude));
 }
 
-/** Haversine great-circle distance in metres. Pure math, no WorldWind needed. */
+/** Haversine great-circle distance in metres. Pure math, no WorldWind needed.
+ * @category Geo utilities
+ */
 export function greatCircleDistanceMeters(
   a: LatLon,
   b: LatLon,
@@ -66,7 +82,9 @@ export function greatCircleDistanceMeters(
   return 2 * radius * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-/** Initial great-circle bearing from `a` to `b`, in degrees clockwise from north [0, 360). */
+/** Initial great-circle bearing from `a` to `b`, in degrees clockwise from north [0, 360).
+ * @category Geo utilities
+ */
 export function initialBearingDegrees(a: LatLon, b: LatLon): number {
   const lat1 = a.latitude * DEG_TO_RAD;
   const lat2 = b.latitude * DEG_TO_RAD;
@@ -76,6 +94,7 @@ export function initialBearingDegrees(a: LatLon, b: LatLon): number {
   return (Math.atan2(y, x) * RAD_TO_DEG + 360) % 360;
 }
 
+/** @category Geo utilities */
 export interface FormatLatLonOptions {
   /** Decimal places for `decimal`, or seconds precision for `dms`. Default 4 / 1. */
   precision?: number;
@@ -92,7 +111,9 @@ function toDms(value: number, positive: string, negative: string, precision: num
   return `${degrees}°${String(minutes).padStart(2, '0')}'${seconds}"${hemisphere}`;
 }
 
-/** Formats a coordinate pair, e.g. `40.7128°N, 74.0060°W` or `40°42'46.1"N, 74°00'21.6"W`. */
+/** Formats a coordinate pair, e.g. `40.7128°N, 74.0060°W` or `40°42'46.1"N, 74°00'21.6"W`.
+ * @category Geo utilities
+ */
 export function formatLatLon(point: LatLon, options: FormatLatLonOptions = {}): string {
   const style = options.style ?? 'decimal';
   if (style === 'dms') {
@@ -105,7 +126,9 @@ export function formatLatLon(point: LatLon, options: FormatLatLonOptions = {}): 
   return `${lat}, ${lon}`;
 }
 
-/** Formats metres as `m` or `km` with sensible precision, e.g. `340 m`, `1.25 km`, `10,200 km`. */
+/** Formats metres as `m` or `km` with sensible precision, e.g. `340 m`, `1.25 km`, `10,200 km`.
+ * @category Geo utilities
+ */
 export function formatDistance(meters: number): string {
   if (!Number.isFinite(meters)) return '';
   const abs = Math.abs(meters);
@@ -118,6 +141,7 @@ export function formatDistance(meters: number): string {
 /**
  * Parses user-typed coordinates such as `40.7, -74`, `40.7N 74W` or `-33.9;151.2`.
  * Returns null when the text is not a coordinate pair or is out of range.
+  * @category Geo utilities
  */
 export function parseLatLon(text: string): LatLon | null {
   const match =

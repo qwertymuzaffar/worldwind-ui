@@ -13,10 +13,13 @@ import { PickDispatcher, pickAt, type PickEventType, type PickHandler, type Pick
 import { loadWorldWind, type LoadWorldWindOptions } from './worldwind';
 import type { WWLayer, WWRenderableLayer, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
+/** @category Globe */
 export type ProjectionKind = '3d' | 'equirectangular' | 'mercator' | 'north-polar' | 'south-polar';
 
+/** @category Globe */
 export const PROJECTION_KINDS: readonly ProjectionKind[] = ['3d', 'equirectangular', 'mercator', 'north-polar', 'south-polar'];
 
+/** @category Globe */
 export const PROJECTION_LABELS: Record<ProjectionKind, string> = {
   '3d': '3D',
   equirectangular: 'Equirectangular',
@@ -25,8 +28,10 @@ export const PROJECTION_LABELS: Record<ProjectionKind, string> = {
   'south-polar': 'South polar',
 };
 
+/** @category Globe */
 export type LogLevel = 'none' | 'severe' | 'warning' | 'info';
 
+/** @category Globe */
 export interface GlobeOptions {
   /**
    * Where WorldWind's image assets live. Defaults to a CDN copy matching the installed WorldWind.
@@ -61,6 +66,17 @@ const LOG_LEVELS: Record<LogLevel, (worldWind: WorldWindStatic) => number> = {
 /**
  * Owns one WorldWindow: creates it on a host element, wires up layers, camera and picking, and
  * tears everything down in `destroy()` (something WorldWind itself cannot do).
+  * @example
+ * ```ts
+ * const globe = await GlobeController.create(document.getElementById('map')!, {
+ *   layers: ['blue-marble-landsat', 'atmosphere'],
+ *   view: { latitude: 48.85, longitude: 2.35, range: 5e5 },
+ * });
+ * globe.on('click', (event) => console.log(event.position));
+ * await globe.camera.goTo({ latitude: 51.5, longitude: -0.12, range: 1e6 }, { duration: 2000 });
+ * globe.destroy();
+ * ```
+ * @category Globe
  */
 export class GlobeController {
   readonly worldWind: WorldWindStatic;

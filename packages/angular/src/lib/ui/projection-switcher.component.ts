@@ -3,7 +3,9 @@ import { PROJECTION_KINDS, PROJECTION_LABELS, type ProjectionKind } from 'worldw
 import { WwGlobeComponent } from '../globe.component';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
-/** Buttons that switch between the 3D globe and the flat projections. */
+/** Buttons that switch between the 3D globe and the flat projections.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-projection-switcher',
   imports: [WwPanelComponent],

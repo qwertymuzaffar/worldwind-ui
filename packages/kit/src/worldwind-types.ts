@@ -8,22 +8,27 @@
  * signature on {@link WorldWindStatic}, typed as `any`.
  */
 
+/** @category WorldWind types */
 export interface WWLocation {
   latitude: number;
   longitude: number;
 }
 
+/** @category WorldWind types */
 export interface WWPosition extends WWLocation {
   altitude: number;
 }
 
-/** WorldWind's Vec2 extends Float64Array; only indexed access is needed here. */
+/** WorldWind's Vec2 extends Float64Array; only indexed access is needed here.
+ * @category WorldWind types
+ */
 export interface WWVec2 {
   0: number;
   1: number;
   readonly length: number;
 }
 
+/** @category WorldWind types */
 export interface WWColor {
   red: number;
   green: number;
@@ -35,6 +40,7 @@ export interface WWColor {
   toCssColorString(): string;
 }
 
+/** @category WorldWind types */
 export interface WWOffset {
   x: number;
   y: number;
@@ -43,6 +49,7 @@ export interface WWOffset {
   clone(): WWOffset;
 }
 
+/** @category WorldWind types */
 export interface WWSector {
   minLatitude: number;
   maxLatitude: number;
@@ -50,6 +57,7 @@ export interface WWSector {
   maxLongitude: number;
 }
 
+/** @category WorldWind types */
 export interface WWFont {
   size: number;
   style: string;
@@ -59,11 +67,13 @@ export interface WWFont {
   horizontalAlignment: string;
 }
 
+/** @category WorldWind types */
 export interface WWImageSource {
   image: HTMLImageElement | HTMLCanvasElement;
   key: string;
 }
 
+/** @category WorldWind types */
 export interface WWLayer {
   displayName: string;
   enabled: boolean;
@@ -76,6 +86,7 @@ export interface WWLayer {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWRenderable {
   displayName: string | null;
   enabled: boolean;
@@ -84,6 +95,7 @@ export interface WWRenderable {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWRenderableLayer extends WWLayer {
   renderables: WWRenderable[];
   addRenderable(renderable: WWRenderable): void;
@@ -92,6 +104,7 @@ export interface WWRenderableLayer extends WWLayer {
   removeAllRenderables(): void;
 }
 
+/** @category WorldWind types */
 export interface WWTextAttributes {
   color: WWColor;
   font: WWFont;
@@ -103,6 +116,7 @@ export interface WWTextAttributes {
   outlineColor: WWColor;
 }
 
+/** @category WorldWind types */
 export interface WWShapeAttributes {
   drawInterior: boolean;
   drawOutline: boolean;
@@ -118,6 +132,7 @@ export interface WWShapeAttributes {
   applyLighting: boolean;
 }
 
+/** @category WorldWind types */
 export interface WWPlacemarkAttributes {
   imageColor: WWColor;
   imageOffset: WWOffset;
@@ -129,6 +144,7 @@ export interface WWPlacemarkAttributes {
   leaderLineAttributes: WWShapeAttributes;
 }
 
+/** @category WorldWind types */
 export interface WWPlacemark extends WWRenderable {
   position: WWPosition;
   label: string | null;
@@ -145,6 +161,7 @@ export interface WWPlacemark extends WWRenderable {
   enableLeaderLinePicking: boolean;
 }
 
+/** @category WorldWind types */
 export interface WWAbstractShape extends WWRenderable {
   attributes: WWShapeAttributes;
   highlightAttributes: WWShapeAttributes | null;
@@ -152,6 +169,7 @@ export interface WWAbstractShape extends WWRenderable {
   altitudeMode: string;
 }
 
+/** @category WorldWind types */
 export interface WWPath extends WWAbstractShape {
   positions: WWPosition[];
   followTerrain: boolean;
@@ -161,11 +179,13 @@ export interface WWPath extends WWAbstractShape {
   terrainConformance: number;
 }
 
+/** @category WorldWind types */
 export interface WWPolygon extends WWAbstractShape {
   boundaries: WWPosition[] | WWPosition[][];
   extrude: boolean;
 }
 
+/** @category WorldWind types */
 export interface WWSurfaceShape extends WWRenderable {
   attributes: WWShapeAttributes;
   highlightAttributes: WWShapeAttributes | null;
@@ -174,19 +194,23 @@ export interface WWSurfaceShape extends WWRenderable {
   maximumNumEdgeIntervals: number;
 }
 
+/** @category WorldWind types */
 export interface WWSurfacePolyline extends WWSurfaceShape {
   locations: WWLocation[];
 }
 
+/** @category WorldWind types */
 export interface WWSurfacePolygon extends WWSurfaceShape {
   boundaries: WWLocation[] | WWLocation[][];
 }
 
+/** @category WorldWind types */
 export interface WWSurfaceCircle extends WWSurfaceShape {
   center: WWLocation;
   radius: number;
 }
 
+/** @category WorldWind types */
 export interface WWGeographicText extends WWRenderable {
   text: string;
   position: WWPosition;
@@ -195,6 +219,7 @@ export interface WWGeographicText extends WWRenderable {
   alwaysOnTop: boolean;
 }
 
+/** @category WorldWind types */
 export interface WWNavigator {
   lookAtLocation: WWLocation;
   range: number;
@@ -204,6 +229,7 @@ export interface WWNavigator {
   enable2DLimits: boolean;
 }
 
+/** @category WorldWind types */
 export interface WWGoToAnimator {
   travelTime: number;
   animationFrequency: number;
@@ -212,6 +238,7 @@ export interface WWGoToAnimator {
   cancel(): void;
 }
 
+/** @category WorldWind types */
 export interface WWGlobe {
   elevationModel: unknown;
   projection: unknown;
@@ -221,6 +248,7 @@ export interface WWGlobe {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWPickedObject {
   userObject: any;
   position: WWPosition | null;
@@ -230,6 +258,7 @@ export interface WWPickedObject {
   color: WWColor;
 }
 
+/** @category WorldWind types */
 export interface WWPickedObjectList {
   objects: WWPickedObject[];
   hasNonTerrainObjects(): boolean;
@@ -237,8 +266,10 @@ export interface WWPickedObjectList {
   topPickedObject(): WWPickedObject | null;
 }
 
+/** @category WorldWind types */
 export type WWRedrawCallback = (wwd: WWWorldWindow, stage: string) => void;
 
+/** @category WorldWind types */
 export interface WWWorldWindow {
   canvas: HTMLCanvasElement;
   layers: WWLayer[];
@@ -270,6 +301,7 @@ export interface WWWorldWindow {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWGestureRecognizer {
   enabled: boolean;
   readonly state: string;
@@ -281,6 +313,7 @@ export interface WWGestureRecognizer {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWWmsLayerConfig {
   service: string;
   layerNames: string;
@@ -295,6 +328,7 @@ export interface WWWmsLayerConfig {
   version?: string;
 }
 
+/** @category WorldWind types */
 export interface WWWmtsLayerConfig {
   identifier: string;
   service?: string;
@@ -306,18 +340,21 @@ export interface WWWmtsLayerConfig {
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWWmsCapabilities {
   getNamedLayer(name: string): any | null;
   getNamedLayers(): any[];
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWWmtsCapabilities {
   getLayer(identifier: string): any | null;
   contents: { layer: any[]; [key: string]: any };
   [key: string]: any;
 }
 
+/** @category WorldWind types */
 export interface WWGeoJSONParser {
   load(
     completionCallback: ((layer: WWRenderableLayer) => void) | null,
@@ -326,20 +363,26 @@ export interface WWGeoJSONParser {
   ): void;
 }
 
+/** @category WorldWind types */
 export interface WWLengthMeasurer {
   getLength(positions: WWPosition[], followTerrain?: boolean, pathType?: string): number;
 }
 
+/** @category WorldWind types */
 export interface WWAreaMeasurer {
   getArea(positions: WWPosition[], followTerrain?: boolean, pathType?: string): number;
 }
 
-/** Constructor helper: `WWCtor<Instance, ConstructorArgs>`. */
+/** Constructor helper: `WWCtor<Instance, ConstructorArgs>`.
+ * @category WorldWind types
+ */
 export type WWCtor<T, A extends unknown[] = any[]> = new (...args: A) => T;
 
 type LayerCtor<A extends unknown[] = []> = WWCtor<WWLayer, A>;
 
-/** The `WorldWind` namespace object exported by `@nasaworldwind/worldwind`. */
+/** The `WorldWind` namespace object exported by `@nasaworldwind/worldwind`.
+ * @category WorldWind types
+ */
 export interface WorldWindStatic {
   configuration: {
     baseUrl: string;

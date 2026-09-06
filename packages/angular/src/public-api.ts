@@ -63,7 +63,9 @@ import { WwProjectionSwitcherComponent } from './lib/ui/projection-switcher.comp
 import { WwNavigationControlsComponent } from './lib/ui/navigation-controls.component';
 import { WwPanelComponent } from './lib/ui/panel.component';
 
-/** Every component and directive, for `imports: [...WORLDWIND_COMPONENTS]`. */
+/** Every component and directive, for `imports: [...WORLDWIND_COMPONENTS]`.
+ * @category Globe
+ */
 export const WORLDWIND_COMPONENTS = [
   WwGlobeComponent,
   WwLayerComponent,

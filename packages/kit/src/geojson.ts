@@ -3,6 +3,7 @@ import { toColor, type ColorInput } from './color';
 import { applyShapeStyle, toOffset, type OffsetInput, type PlacemarkHighlight, type ShapeStyle } from './shapes';
 import type { WWPlacemarkAttributes, WWRenderableLayer, WWShapeAttributes, WorldWindStatic } from './worldwind-types';
 
+/** @category Data layers */
 export type GeoJsonGeometryType =
   | 'Point'
   | 'MultiPoint'
@@ -12,6 +13,7 @@ export type GeoJsonGeometryType =
   | 'MultiPolygon'
   | 'Unknown';
 
+/** @category Data layers */
 export interface GeoJsonPointStyle {
   /** Image URL, or null for label-only points. Defaults to a pushpin. */
   imageSource?: string | null;
@@ -26,6 +28,7 @@ export interface GeoJsonPointStyle {
   labelFontSize?: number;
 }
 
+/** @category Data layers */
 export interface GeoJsonStyle {
   point?: GeoJsonPointStyle;
   line?: ShapeStyle;
@@ -33,14 +36,18 @@ export interface GeoJsonStyle {
   highlight?: { point?: PlacemarkHighlight; line?: ShapeStyle; polygon?: ShapeStyle };
 }
 
+/** @category Data layers */
 export interface GeoJsonFeatureInfo {
   properties: Record<string, unknown>;
   geometryType: GeoJsonGeometryType;
 }
 
-/** Returns the style for one feature; return undefined for the defaults. */
+/** Returns the style for one feature; return undefined for the defaults.
+ * @category Data layers
+ */
 export type GeoJsonStyleResolver = (feature: GeoJsonFeatureInfo) => GeoJsonStyle | undefined;
 
+/** @category Data layers */
 export interface LoadGeoJsonOptions {
   style?: GeoJsonStyle | GeoJsonStyleResolver;
   /** Injectable for tests or custom transports. */
@@ -57,6 +64,7 @@ interface WWGeoJSONGeometry {
   isMultiPolygonType(): boolean;
 }
 
+/** @category Data layers */
 export function geoJsonGeometryType(geometry: WWGeoJSONGeometry): GeoJsonGeometryType {
   if (geometry.isPointType()) return 'Point';
   if (geometry.isMultiPointType()) return 'MultiPoint';
@@ -74,7 +82,9 @@ interface ShapeConfiguration {
   userProperties?: unknown;
 }
 
-/** Builds the callback WorldWind's GeoJSONParser calls for every geometry. */
+/** Builds the callback WorldWind's GeoJSONParser calls for every geometry.
+ * @category Data layers
+ */
 export function geoJsonShapeConfiguration(
   worldWind: WorldWindStatic,
   style: GeoJsonStyle | GeoJsonStyleResolver | undefined,
@@ -132,6 +142,17 @@ export function geoJsonShapeConfiguration(
  * Loads GeoJSON (a URL, a JSON string, or an object) into a renderable layer with WorldWind's
  * parser. Points become placemarks, lines surface polylines, polygons surface polygons; every
  * shape carries the feature properties as `userProperties`, so picks return them.
+  * @example
+ * ```ts
+ * const layer = globe.addRenderableLayer('Airports');
+ * await loadGeoJson(globe.worldWind, '/airports.geojson', layer, {
+ *   style: ({ properties, geometryType }) =>
+ *     geometryType === 'Point'
+ *       ? { point: { pushpin: properties.busy ? 'orange' : 'white', labelProperty: 'name' } }
+ *       : { polygon: { fill: 'rgba(251, 191, 36, 0.15)', stroke: '#fbbf24' } },
+ * });
+ * ```
+ * @category Data layers
  */
 export async function loadGeoJson(
   worldWind: WorldWindStatic,

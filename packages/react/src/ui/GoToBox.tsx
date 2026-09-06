@@ -10,6 +10,7 @@ import {
 import { useGlobe } from '../context';
 import { Panel, type PanelPosition } from './Panel';
 
+/** @category Widgets */
 export interface GoToBoxProps {
   position?: PanelPosition;
   heading?: string | null;
@@ -26,7 +27,9 @@ export interface GoToBoxProps {
 
 type Status = { kind: 'idle' } | { kind: 'searching' } | { kind: 'empty' } | { kind: 'error'; message: string };
 
-/** A search box: type `lat, lon` or a place name and fly there. */
+/** A search box: type `lat, lon` or a place name and fly there.
+ * @category Widgets
+ */
 export function GoToBox({
   position = 'top-left',
   heading = 'Go to',

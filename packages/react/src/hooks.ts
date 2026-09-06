@@ -27,13 +27,16 @@ function useCameraStore(globe: GlobeController) {
   );
 }
 
-/** The camera state, updated after every frame in which it changed. */
+/** The camera state, updated after every frame in which it changed.
+ * @category Hooks
+ */
 export function useCameraState(): CameraState {
   const globe = useGlobe();
   const store = useCameraStore(globe);
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
+/** @category Hooks */
 export interface UseCameraResult {
   state: CameraState;
   controller: CameraController;
@@ -48,7 +51,9 @@ export interface UseCameraResult {
   resetOrientation: CameraController['resetOrientation'];
 }
 
-/** Camera state plus bound controls. */
+/** Camera state plus bound controls.
+ * @category Hooks
+ */
 export function useCamera(): UseCameraResult {
   const globe = useGlobe();
   const state = useCameraState();
@@ -70,7 +75,9 @@ export function useCamera(): UseCameraResult {
   return useMemo(() => ({ state, ...controls }), [state, controls]);
 }
 
-/** Snapshot of the globe's layers (bottom to top), updated on every layer change. */
+/** Snapshot of the globe's layers (bottom to top), updated on every layer change.
+ * @category Hooks
+ */
 export function useLayers(): readonly WWLayer[] {
   const globe = useGlobe();
   const store = useMemo(
@@ -83,7 +90,9 @@ export function useLayers(): readonly WWLayer[] {
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
-/** Subscribes to globe-wide click, double-click or hover picks. */
+/** Subscribes to globe-wide click, double-click or hover picks.
+ * @category Hooks
+ */
 export function useGlobeEvent(type: PickEventType, handler: PickHandler | undefined): void {
   const globe = useGlobe();
   const latest = useLatest(handler);
@@ -94,13 +103,16 @@ export function useGlobeEvent(type: PickEventType, handler: PickHandler | undefi
   }, [globe, type, active, latest]);
 }
 
-/** The most recent hover pick, or null before the mouse first moves over the globe. */
+/** The most recent hover pick, or null before the mouse first moves over the globe.
+ * @category Hooks
+ */
 export function useHoverPick(): PickResult | null {
   const [pick, setPick] = useState<PickResult | null>(null);
   useGlobeEvent('hover', setPick);
   return pick;
 }
 
+/** @category Hooks */
 export interface UseLayerOptions extends LayerOptions {
   /** Position in the layer stack (0 = bottom). Applied on creation only. */
   index?: number;
@@ -111,6 +123,11 @@ export interface UseLayerOptions extends LayerOptions {
 /**
  * Creates a WorldWind layer with `create` (synchronously or from a promise), adds it to the
  * globe, and removes it on unmount or whenever `deps` change. The {@link LayerOptions} are reactive.
+  * @example
+ * ```tsx
+ * const layer = useLayer((globe) => new globe.worldWind.TectonicPlatesLayer(), [], { opacity: 0.6 });
+ * ```
+ * @category Hooks
  */
 export function useLayer<L extends WWLayer>(
   create: (globe: GlobeController) => L | Promise<L>,
@@ -161,7 +178,9 @@ export function useLayer<L extends WWLayer>(
   return layer;
 }
 
-/** The globe's current projection, updated whenever it changes. */
+/** The globe's current projection, updated whenever it changes.
+ * @category Hooks
+ */
 export function useProjection(): ProjectionKind {
   const globe = useGlobe();
   const store = useMemo(
@@ -174,6 +193,7 @@ export function useProjection(): ProjectionKind {
   return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
 }
 
+/** @category Hooks */
 export interface UseMeasureToolResult {
   state: MeasurementState;
   /** The tool, or null until the globe effect has created it. */
@@ -187,7 +207,14 @@ export interface UseMeasureToolResult {
 
 const IDLE_MEASUREMENT: MeasurementState = { points: [], lengthMeters: 0, areaSquareMeters: null, active: false };
 
-/** A click-to-measure tool bound to the globe for the component's lifetime. */
+/** A click-to-measure tool bound to the globe for the component's lifetime.
+ * @example
+ * ```tsx
+ * const { state, toggle } = useMeasureTool();
+ * return <button onClick={toggle}>{state.active ? 'Stop' : 'Measure'} ({formatDistance(state.lengthMeters)})</button>;
+ * ```
+ * @category Hooks
+ */
 export function useMeasureTool(options: MeasureToolOptions = {}): UseMeasureToolResult {
   const globe = useGlobe();
   const latest = useLatest(options);

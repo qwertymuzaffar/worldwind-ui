@@ -21,17 +21,21 @@ import { useLatest } from './internal/utils';
 import { RenderableLayerContext } from './context';
 import { useLayer, type UseLayerOptions } from './hooks';
 
+/** @category Layers */
 export interface LayerProps extends UseLayerOptions {
   /** One of WorldWind's built-in layers, e.g. `blue-marble-landsat`, `osm`, `atmosphere`, `compass`. */
   kind: BuiltInLayerKind;
 }
 
-/** Adds a built-in WorldWind layer. Changing `kind` recreates it. */
+/** Adds a built-in WorldWind layer. Changing `kind` recreates it.
+ * @category Layers
+ */
 export function Layer({ kind, ...options }: LayerProps) {
   useLayer((globe) => createBuiltInLayer(globe.worldWind, globe.wwd, kind), [kind], options);
   return null;
 }
 
+/** @category Layers */
 export interface WmsLayerProps extends WmsLayerOptions {
   index?: number;
   /**
@@ -42,7 +46,9 @@ export interface WmsLayerProps extends WmsLayerOptions {
   onError?: (error: unknown) => void;
 }
 
-/** Adds an OGC WMS layer. Changing the service configuration recreates it. */
+/** Adds an OGC WMS layer. Changing the service configuration recreates it.
+ * @category Layers
+ */
 export function WmsLayer(props: WmsLayerProps) {
   const {
     index,
@@ -73,12 +79,15 @@ export function WmsLayer(props: WmsLayerProps) {
   return null;
 }
 
+/** @category Layers */
 export interface WmtsLayerProps extends Omit<WmtsLayerFromCapabilitiesOptions, 'fetch' | 'signal'> {
   index?: number;
   onError?: (error: unknown) => void;
 }
 
-/** Adds an OGC WMTS layer, configured from the service's GetCapabilities document. */
+/** Adds an OGC WMTS layer, configured from the service's GetCapabilities document.
+ * @category Layers
+ */
 export function WmtsLayer(props: WmtsLayerProps) {
   const {
     index,
@@ -100,6 +109,7 @@ export function WmtsLayer(props: WmtsLayerProps) {
   return null;
 }
 
+/** @category Layers */
 export interface GeoJsonLayerProps extends UseLayerOptions {
   /** A URL, a JSON string, or a GeoJSON object. */
   source: string | object;
@@ -109,7 +119,9 @@ export interface GeoJsonLayerProps extends UseLayerOptions {
   onLoad?: (layer: WWRenderableLayer) => void;
 }
 
-/** Loads GeoJSON into its own renderable layer; reloads when `source` or `style` change. */
+/** Loads GeoJSON into its own renderable layer; reloads when `source` or `style` change.
+ * @category Layers
+ */
 export function GeoJsonLayer({ source, style, name = 'GeoJSON', onLoad, onError, ...options }: GeoJsonLayerProps) {
   const globe = useGlobe();
   const layer = useLayer<WWRenderableLayer>((g) => new g.worldWind.RenderableLayer(name), [], { displayName: name, ...options });
@@ -141,13 +153,16 @@ export function GeoJsonLayer({ source, style, name = 'GeoJSON', onLoad, onError,
   return null;
 }
 
+/** @category Layers */
 export interface KmlLayerProps extends UseLayerOptions {
   url: string;
   name?: string;
   onLoad?: (document: unknown) => void;
 }
 
-/** Loads a KML or KMZ document into its own renderable layer. */
+/** Loads a KML or KMZ document into its own renderable layer.
+ * @category Layers
+ */
 export function KmlLayer({ url, name = 'KML', onLoad, onError, ...options }: KmlLayerProps) {
   const globe = useGlobe();
   const layer = useLayer<WWRenderableLayer>((g) => new g.worldWind.RenderableLayer(name), [], { displayName: name, ...options });
@@ -174,13 +189,16 @@ export function KmlLayer({ url, name = 'KML', onLoad, onError, ...options }: Kml
   return null;
 }
 
+/** @category Layers */
 export interface RenderableLayerProps extends UseLayerOptions {
   /** Shown in layer switchers. */
   name?: string;
   children?: ReactNode;
 }
 
-/** A layer that holds shapes: render `<Placemark>`, `<Path>`, `<Polygon>` and friends inside it. */
+/** A layer that holds shapes: render `<Placemark>`, `<Path>`, `<Polygon>` and friends inside it.
+ * @category Layers
+ */
 export function RenderableLayer({ name = 'Renderables', children, ...options }: RenderableLayerProps) {
   const layer = useLayer<WWRenderableLayer>(
     (globe) => new globe.worldWind.RenderableLayer(name),
@@ -191,6 +209,7 @@ export function RenderableLayer({ name = 'Renderables', children, ...options }: 
   return <RenderableLayerContext.Provider value={layer}>{children}</RenderableLayerContext.Provider>;
 }
 
+/** @category Layers */
 export interface CustomLayerProps<L extends WWLayer> extends UseLayerOptions {
   /** Builds any WorldWind layer, e.g. `new globe.worldWind.WmtsLayer(config)`. */
   create: (globe: GlobeController) => L;
@@ -199,7 +218,9 @@ export interface CustomLayerProps<L extends WWLayer> extends UseLayerOptions {
   children?: (layer: L) => ReactNode;
 }
 
-/** Escape hatch for layers the library has no component for. */
+/** Escape hatch for layers the library has no component for.
+ * @category Layers
+ */
 export function CustomLayer<L extends WWLayer>({ create, deps = [], children, ...options }: CustomLayerProps<L>) {
   const layer = useLayer(create, deps, options);
   return layer && children ? <>{children(layer)}</> : null;

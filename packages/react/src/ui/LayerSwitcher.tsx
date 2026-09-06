@@ -14,6 +14,7 @@ function layerId(layer: WWLayer): number {
   return id;
 }
 
+/** @category Widgets */
 export interface LayerSwitcherProps {
   position?: PanelPosition;
   heading?: string | null;
@@ -27,7 +28,9 @@ export interface LayerSwitcherProps {
   className?: string;
 }
 
-/** Checkboxes and opacity sliders for every layer on the globe. */
+/** Checkboxes and opacity sliders for every layer on the globe.
+ * @category Widgets
+ */
 export function LayerSwitcher({
   position = 'top-left',
   heading = 'Layers',

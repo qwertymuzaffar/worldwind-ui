@@ -63,7 +63,9 @@ import { WwRenderableLayerComponent } from './layers';
 
 type Highlightable = WWRenderable & { highlighted?: boolean };
 
-/** Lifecycle and events shared by every shape component. */
+/** Lifecycle and events shared by every shape component.
+ * @category Shapes
+ */
 @Directive()
 export abstract class WwShapeBase<T extends Highlightable, O> {
   protected readonly globeHost = inject(WwGlobeComponent);
@@ -173,7 +175,9 @@ export abstract class WwShapeBase<T extends Highlightable, O> {
   }
 }
 
-/** Adds the fill/stroke style inputs. */
+/** Adds the fill/stroke style inputs.
+ * @category Shapes
+ */
 @Directive()
 export abstract class WwStyledShapeBase<T extends Highlightable, O> extends WwShapeBase<T, O> {
   readonly fill = input<ColorInput | null | undefined>(undefined);
@@ -199,7 +203,9 @@ export abstract class WwStyledShapeBase<T extends Highlightable, O> extends WwSh
   }
 }
 
-/** A pushpin, icon or label at a position. Defaults to WorldWind's red pushpin. */
+/** A pushpin, icon or label at a position. Defaults to WorldWind's red pushpin.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-placemark',
   template: '',
@@ -273,7 +279,9 @@ export class WwPlacemarkComponent extends WwShapeBase<WWPlacemark, PlacemarkOpti
   }
 }
 
-/** A 3D line through positions. */
+/** A 3D line through positions.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-path',
   template: '',
@@ -309,7 +317,9 @@ export class WwPathComponent extends WwStyledShapeBase<WWPath, PathOptions> {
   }
 }
 
-/** A 3D polygon, optionally extruded to the ground. */
+/** A 3D polygon, optionally extruded to the ground.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-polygon',
   template: '',
@@ -337,7 +347,9 @@ export class WwPolygonComponent extends WwStyledShapeBase<WWPolygon, PolygonOpti
   }
 }
 
-/** A line draped on the terrain. */
+/** A line draped on the terrain.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-surface-polyline',
   template: '',
@@ -367,7 +379,9 @@ export class WwSurfacePolylineComponent extends WwStyledShapeBase<WWSurfacePolyl
   }
 }
 
-/** A polygon draped on the terrain. */
+/** A polygon draped on the terrain.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-surface-polygon',
   template: '',
@@ -397,7 +411,9 @@ export class WwSurfacePolygonComponent extends WwStyledShapeBase<WWSurfacePolygo
   }
 }
 
-/** A circle draped on the terrain. */
+/** A circle draped on the terrain.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-surface-circle',
   template: '',
@@ -430,7 +446,9 @@ export class WwSurfaceCircleComponent extends WwStyledShapeBase<WWSurfaceCircle,
   }
 }
 
-/** A text label anchored to a position. */
+/** A text label anchored to a position.
+ * @category Shapes
+ */
 @Component({
   selector: 'ww-geographic-text',
   template: '',

@@ -31,5 +31,31 @@
     "notDocumented": false
   },
   "gitRevision": "main",
-  "sourceLinkTemplate": "https://github.com/qwertymuzaffar/worldwind-ui/blob/{gitRevision}/{path}#L{line}"
+  "sourceLinkTemplate": "https://github.com/qwertymuzaffar/worldwind-ui/blob/{gitRevision}/{path}#L{line}",
+  "categorizeByGroup": false,
+  "categoryOrder": [
+    "Globe",
+    "Loading WorldWind",
+    "Layers",
+    "Data layers",
+    "Shapes",
+    "Camera",
+    "Picking",
+    "Tools",
+    "Widgets",
+    "Hooks",
+    "Context",
+    "Signals",
+    "Geo utilities",
+    "Colors",
+    "Assets",
+    "Utilities",
+    "WorldWind types",
+    "*"
+  ],
+  "navigation": {
+    "includeCategories": true,
+    "includeGroups": false,
+    "includeFolders": false
+  }
 }

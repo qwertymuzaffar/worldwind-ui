@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { CameraTarget } from 'worldwind-kit';
 import { useGlobe } from './context';
 
+/** @category Camera */
 export interface CameraProps extends CameraTarget {
   /** Animation length in ms when the target changes. `0` (default) jumps. */
   animate?: number;
@@ -10,6 +11,7 @@ export interface CameraProps extends CameraTarget {
 /**
  * Declarative camera: whenever the props change the globe moves there. User interaction still
  * works in between; the component only pushes, it never fights the user.
+  * @category Camera
  */
 export function Camera({ latitude, longitude, range, heading, tilt, roll, animate = 0 }: CameraProps) {
   const globe = useGlobe();

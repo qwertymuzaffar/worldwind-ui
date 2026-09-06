@@ -1,3 +1,4 @@
+/** @category Tools */
 export interface GeocodeResult {
   displayName: string;
   latitude: number;
@@ -10,6 +11,7 @@ export interface GeocodeResult {
   raw: unknown;
 }
 
+/** @category Tools */
 export interface GeocodeOptions {
   /** A Nominatim-compatible search endpoint. Defaults to the public OpenStreetMap instance. */
   endpoint?: string;
@@ -22,6 +24,7 @@ export interface GeocodeOptions {
   fetch?: typeof fetch;
 }
 
+/** @category Tools */
 export const DEFAULT_GEOCODE_ENDPOINT = 'https://nominatim.openstreetmap.org/search';
 
 interface NominatimRecord {
@@ -38,6 +41,7 @@ interface NominatimRecord {
  * The public OpenStreetMap instance is for light use only (at most one request per second,
  * with a valid Referer) - see https://operations.osmfoundation.org/policies/nominatim/.
  * Point `endpoint` at your own or a commercial Nominatim for anything heavier.
+  * @category Tools
  */
 export async function geocode(query: string, options: GeocodeOptions = {}): Promise<GeocodeResult[]> {
   const trimmed = query.trim();
@@ -80,7 +84,9 @@ export async function geocode(query: string, options: GeocodeOptions = {}): Prom
   });
 }
 
-/** A camera range (metres) that frames a bounding box, useful after geocoding. */
+/** A camera range (metres) that frames a bounding box, useful after geocoding.
+ * @category Tools
+ */
 export function rangeForBoundingBox(box: { south: number; north: number; west: number; east: number }): number {
   const latSpan = Math.abs(box.north - box.south);
   const lonSpan = Math.abs(box.east - box.west) * Math.cos((((box.north + box.south) / 2) * Math.PI) / 180);

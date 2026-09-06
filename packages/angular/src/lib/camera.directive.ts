@@ -4,6 +4,7 @@ import { WwGlobeComponent } from './globe.component';
 /**
  * Declarative camera: `<ww-camera [latitude]="lat" [longitude]="lon" [range]="5e5" [animate]="1500" />`.
  * Moves the globe whenever an input changes; the first application jumps, later ones animate.
+  * @category Camera
  */
 @Directive({ selector: 'ww-camera, [wwCamera]' })
 export class WwCameraDirective {

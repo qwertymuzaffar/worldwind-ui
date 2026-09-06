@@ -17,9 +17,12 @@ import type {
   WorldWindStatic,
 } from './worldwind-types';
 
+/** @category Shapes */
 export type AltitudeMode = 'absolute' | 'clampToGround' | 'relativeToGround';
+/** @category Shapes */
 export type PathType = 'greatCircle' | 'linear' | 'rhumbLine';
 
+/** @category Shapes */
 export function altitudeModeValue(worldWind: WorldWindStatic, mode: AltitudeMode | undefined): string {
   switch (mode) {
     case 'clampToGround':
@@ -31,6 +34,7 @@ export function altitudeModeValue(worldWind: WorldWindStatic, mode: AltitudeMode
   }
 }
 
+/** @category Shapes */
 export function pathTypeValue(worldWind: WorldWindStatic, type: PathType | undefined): string {
   switch (type) {
     case 'linear':
@@ -42,8 +46,10 @@ export function pathTypeValue(worldWind: WorldWindStatic, type: PathType | undef
   }
 }
 
+/** @category Shapes */
 export type OffsetUnits = 'fraction' | 'pixels' | 'insetPixels';
 
+/** @category Shapes */
 export interface OffsetInput {
   x: number;
   y: number;
@@ -63,6 +69,7 @@ function offsetUnitsValue(worldWind: WorldWindStatic, units: OffsetUnits | undef
   }
 }
 
+/** @category Shapes */
 export function toOffset(worldWind: WorldWindStatic, offset: OffsetInput): WWOffset {
   return new worldWind.Offset(
     offsetUnitsValue(worldWind, offset.xUnits),
@@ -72,6 +79,7 @@ export function toOffset(worldWind: WorldWindStatic, offset: OffsetInput): WWOff
   );
 }
 
+/** @category Shapes */
 export interface RenderableOptions {
   displayName?: string | null;
   enabled?: boolean;
@@ -85,7 +93,9 @@ function applyRenderableOptions(renderable: WWRenderable, options: RenderableOpt
   if ('userData' in options) renderable.userProperties = options.userData;
 }
 
-/** Visual style shared by paths, polygons and surface shapes. `null` disables a fill or stroke. */
+/** Visual style shared by paths, polygons and surface shapes. `null` disables a fill or stroke.
+ * @category Shapes
+ */
 export interface ShapeStyle {
   fill?: ColorInput | null;
   stroke?: ColorInput | null;
@@ -97,6 +107,7 @@ export interface ShapeStyle {
   imageSource?: string | null;
 }
 
+/** @category Shapes */
 export function applyShapeStyle(
   worldWind: WorldWindStatic,
   attributes: WWShapeAttributes,
@@ -126,6 +137,7 @@ export function applyShapeStyle(
   return attributes;
 }
 
+/** @category Shapes */
 export function createShapeAttributes(worldWind: WorldWindStatic, style: ShapeStyle = {}): WWShapeAttributes {
   return applyShapeStyle(worldWind, new worldWind.ShapeAttributes(null), style);
 }
@@ -146,11 +158,13 @@ function applyHighlight(worldWind: WorldWindStatic, shape: Highlightable, highli
 
 // Placemark ---------------------------------------------------------------------------------------
 
+/** @category Shapes */
 export interface PlacemarkHighlight {
   imageScale?: number;
   imageColor?: ColorInput;
 }
 
+/** @category Shapes */
 export interface PlacemarkOptions extends RenderableOptions {
   position: LatLonAlt;
   label?: string | null;
@@ -177,6 +191,19 @@ export interface PlacemarkOptions extends RenderableOptions {
   highlight?: PlacemarkHighlight | null;
 }
 
+/**
+ * @example
+ * ```ts
+ * const placemark = createPlacemark(globe.worldWind, {
+ *   position: { latitude: 40.7128, longitude: -74.006 },
+ *   label: 'New York',
+ *   imageSource: pushpinUrl(globe.worldWind, 'red'),
+ *   highlight: { imageScale: 1.4 },
+ * });
+ * layer.addRenderable(placemark);
+ * ```
+ * @category Shapes
+ */
 export function createPlacemark(worldWind: WorldWindStatic, options: PlacemarkOptions): WWPlacemark {
   const placemark = new worldWind.Placemark(
     toPosition(worldWind, options.position),
@@ -187,6 +214,7 @@ export function createPlacemark(worldWind: WorldWindStatic, options: PlacemarkOp
   return placemark;
 }
 
+/** @category Shapes */
 export function updatePlacemark(
   worldWind: WorldWindStatic,
   placemark: WWPlacemark,
@@ -252,6 +280,7 @@ export function updatePlacemark(
 
 // Path --------------------------------------------------------------------------------------------
 
+/** @category Shapes */
 export interface PathOptions extends RenderableOptions, ShapeStyle {
   positions: LatLonAlt[];
   altitudeMode?: AltitudeMode;
@@ -263,12 +292,14 @@ export interface PathOptions extends RenderableOptions, ShapeStyle {
   highlight?: ShapeStyle | null;
 }
 
+/** @category Shapes */
 export function createPath(worldWind: WorldWindStatic, options: PathOptions): WWPath {
   const path = new worldWind.Path(toPositions(worldWind, options.positions), createShapeAttributes(worldWind));
   updatePath(worldWind, path, options);
   return path;
 }
 
+/** @category Shapes */
 export function updatePath(worldWind: WorldWindStatic, path: WWPath, options: Partial<PathOptions>): void {
   if (options.positions) path.positions = toPositions(worldWind, options.positions);
   if (options.altitudeMode !== undefined) path.altitudeMode = altitudeModeValue(worldWind, options.altitudeMode);
@@ -284,12 +315,14 @@ export function updatePath(worldWind: WorldWindStatic, path: WWPath, options: Pa
 
 // Polygon -----------------------------------------------------------------------------------------
 
+/** @category Shapes */
 export type PolygonBoundaries = LatLonAlt[] | LatLonAlt[][];
 
 function isMultiRing(boundaries: PolygonBoundaries): boundaries is LatLonAlt[][] {
   return Array.isArray(boundaries[0]);
 }
 
+/** @category Shapes */
 export interface PolygonOptions extends RenderableOptions, ShapeStyle {
   /** One ring, or an outer ring followed by holes. */
   boundaries: PolygonBoundaries;
@@ -304,6 +337,7 @@ function toPolygonBoundaries(worldWind: WorldWindStatic, boundaries: PolygonBoun
     : toPositions(worldWind, boundaries);
 }
 
+/** @category Shapes */
 export function createPolygon(worldWind: WorldWindStatic, options: PolygonOptions): WWPolygon {
   const polygon = new worldWind.Polygon(
     toPolygonBoundaries(worldWind, options.boundaries),
@@ -313,6 +347,7 @@ export function createPolygon(worldWind: WorldWindStatic, options: PolygonOption
   return polygon;
 }
 
+/** @category Shapes */
 export function updatePolygon(worldWind: WorldWindStatic, polygon: WWPolygon, options: Partial<PolygonOptions>): void {
   if (options.boundaries) polygon.boundaries = toPolygonBoundaries(worldWind, options.boundaries);
   if (options.altitudeMode !== undefined) polygon.altitudeMode = altitudeModeValue(worldWind, options.altitudeMode);
@@ -324,6 +359,7 @@ export function updatePolygon(worldWind: WorldWindStatic, polygon: WWPolygon, op
 
 // Surface shapes (draped on the terrain) ----------------------------------------------------------
 
+/** @category Shapes */
 export interface SurfaceShapeOptions extends RenderableOptions, ShapeStyle {
   pathType?: PathType;
   highlight?: ShapeStyle | null;
@@ -340,10 +376,12 @@ function updateSurfaceShape(
   applyRenderableOptions(shape, options);
 }
 
+/** @category Shapes */
 export interface SurfacePolylineOptions extends SurfaceShapeOptions {
   locations: LatLon[];
 }
 
+/** @category Shapes */
 export function createSurfacePolyline(worldWind: WorldWindStatic, options: SurfacePolylineOptions): WWSurfacePolyline {
   const shape = new worldWind.SurfacePolyline(
     toLocations(worldWind, options.locations),
@@ -353,6 +391,7 @@ export function createSurfacePolyline(worldWind: WorldWindStatic, options: Surfa
   return shape;
 }
 
+/** @category Shapes */
 export function updateSurfacePolyline(
   worldWind: WorldWindStatic,
   shape: WWSurfacePolyline,
@@ -362,8 +401,10 @@ export function updateSurfacePolyline(
   updateSurfaceShape(worldWind, shape, options);
 }
 
+/** @category Shapes */
 export type SurfacePolygonBoundaries = LatLon[] | LatLon[][];
 
+/** @category Shapes */
 export interface SurfacePolygonOptions extends SurfaceShapeOptions {
   boundaries: SurfacePolygonBoundaries;
 }
@@ -374,6 +415,7 @@ function toSurfaceBoundaries(worldWind: WorldWindStatic, boundaries: SurfacePoly
     : toLocations(worldWind, boundaries as LatLon[]);
 }
 
+/** @category Shapes */
 export function createSurfacePolygon(worldWind: WorldWindStatic, options: SurfacePolygonOptions): WWSurfacePolygon {
   const shape = new worldWind.SurfacePolygon(
     toSurfaceBoundaries(worldWind, options.boundaries),
@@ -383,6 +425,7 @@ export function createSurfacePolygon(worldWind: WorldWindStatic, options: Surfac
   return shape;
 }
 
+/** @category Shapes */
 export function updateSurfacePolygon(
   worldWind: WorldWindStatic,
   shape: WWSurfacePolygon,
@@ -392,12 +435,14 @@ export function updateSurfacePolygon(
   updateSurfaceShape(worldWind, shape, options);
 }
 
+/** @category Shapes */
 export interface SurfaceCircleOptions extends SurfaceShapeOptions {
   center: LatLon;
   /** Radius in metres. */
   radius: number;
 }
 
+/** @category Shapes */
 export function createSurfaceCircle(worldWind: WorldWindStatic, options: SurfaceCircleOptions): WWSurfaceCircle {
   const shape = new worldWind.SurfaceCircle(
     toLocation(worldWind, options.center),
@@ -408,6 +453,7 @@ export function createSurfaceCircle(worldWind: WorldWindStatic, options: Surface
   return shape;
 }
 
+/** @category Shapes */
 export function updateSurfaceCircle(
   worldWind: WorldWindStatic,
   shape: WWSurfaceCircle,
@@ -420,6 +466,7 @@ export function updateSurfaceCircle(
 
 // Text --------------------------------------------------------------------------------------------
 
+/** @category Shapes */
 export interface GeographicTextOptions extends RenderableOptions {
   position: LatLonAlt;
   text: string;
@@ -433,12 +480,14 @@ export interface GeographicTextOptions extends RenderableOptions {
   depthTest?: boolean;
 }
 
+/** @category Shapes */
 export function createGeographicText(worldWind: WorldWindStatic, options: GeographicTextOptions): WWGeographicText {
   const text = new worldWind.GeographicText(toPosition(worldWind, options.position), options.text);
   updateGeographicText(worldWind, text, options);
   return text;
 }
 
+/** @category Shapes */
 export function updateGeographicText(
   worldWind: WorldWindStatic,
   text: WWGeographicText,

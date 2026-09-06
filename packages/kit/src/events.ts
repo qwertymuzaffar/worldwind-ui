@@ -1,6 +1,9 @@
+/** @category Utilities */
 export type Listener<T> = (value: T) => void;
+/** @category Utilities */
 export type Unsubscribe = () => void;
 
+/** @category Utilities */
 export interface Emitter<T> {
   on(listener: Listener<T>): Unsubscribe;
   emit(value: T): void;
@@ -8,7 +11,9 @@ export interface Emitter<T> {
   readonly size: number;
 }
 
-/** Minimal synchronous emitter. Listeners added or removed during `emit` take effect on the next emit. */
+/** Minimal synchronous emitter. Listeners added or removed during `emit` take effect on the next emit.
+ * @category Utilities
+ */
 export function createEmitter<T>(): Emitter<T> {
   const listeners = new Set<Listener<T>>();
   return {

@@ -1,8 +1,11 @@
 import type { WWColor, WorldWindStatic } from './worldwind-types';
 
-/** RGBA components in the 0..1 range, the convention WorldWind uses. */
+/** RGBA components in the 0..1 range, the convention WorldWind uses.
+ * @category Colors
+ */
 export type RgbaTuple = [red: number, green: number, blue: number, alpha?: number];
 
+/** @category Colors */
 export type ColorInput = string | RgbaTuple | WWColor | { red: number; green: number; blue: number; alpha?: number };
 
 const NAMED: Record<string, RgbaTuple> = {
@@ -28,6 +31,7 @@ function clamp01(value: number): number {
 /**
  * Parses a CSS-like colour into 0..1 RGBA. Supports `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`,
  * `rgb(r, g, b)`, `rgba(r, g, b, a)` (0..255 channels, 0..1 alpha) and a few named colours.
+  * @category Colors
  */
 export function parseCssColor(input: string): RgbaTuple {
   const text = input.trim().toLowerCase();
@@ -56,7 +60,9 @@ function isWWColor(value: unknown): value is WWColor {
   return typeof value === 'object' && value !== null && typeof (value as WWColor).clone === 'function';
 }
 
-/** Converts any {@link ColorInput} into a WorldWind Color (always a fresh instance). */
+/** Converts any {@link ColorInput} into a WorldWind Color (always a fresh instance).
+ * @category Colors
+ */
 export function toColor(worldWind: WorldWindStatic, input: ColorInput): WWColor {
   if (isWWColor(input)) return input.clone();
   if (typeof input === 'string') {
@@ -75,7 +81,9 @@ export function toColor(worldWind: WorldWindStatic, input: ColorInput): WWColor 
   );
 }
 
-/** `#rrggbbaa` for a WorldWind Color. */
+/** `#rrggbbaa` for a WorldWind Color.
+ * @category Colors
+ */
 export function colorToHex(color: { red: number; green: number; blue: number; alpha: number }): string {
   const hex = (v: number) =>
     Math.round(clamp01(v) * 255)

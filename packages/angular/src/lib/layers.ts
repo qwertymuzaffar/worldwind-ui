@@ -29,7 +29,9 @@ import {
 } from 'worldwind-kit';
 import { WwGlobeComponent } from './globe.component';
 
-/** Shared inputs and lifecycle for layer components. Subclasses implement `create`. */
+/** Shared inputs and lifecycle for layer components. Subclasses implement `create`.
+ * @category Layers
+ */
 @Directive()
 export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
   protected readonly globeHost = inject(WwGlobeComponent);
@@ -106,7 +108,9 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
   protected abstract create(globe: GlobeController): L | Promise<L>;
 }
 
-/** One of WorldWind's built-in layers: `<ww-layer kind="blue-marble-landsat" />`. */
+/** One of WorldWind's built-in layers: `<ww-layer kind="blue-marble-landsat" />`.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-layer',
   template: '',
@@ -120,7 +124,9 @@ export class WwLayerComponent extends WwLayerBase {
   }
 }
 
-/** An OGC WMS layer. */
+/** An OGC WMS layer.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-wms-layer',
   template: '',
@@ -167,7 +173,9 @@ export class WwWmsLayerComponent extends WwLayerBase {
   }
 }
 
-/** A layer for shapes. Put `<ww-placemark>`, `<ww-path>` and friends inside it. */
+/** A layer for shapes. Put `<ww-placemark>`, `<ww-path>` and friends inside it.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-renderable-layer',
   template: '<ng-content />',
@@ -181,7 +189,9 @@ export class WwRenderableLayerComponent extends WwLayerBase<WWRenderableLayer> {
   }
 }
 
-/** Escape hatch: `<ww-custom-layer [factory]="makeLayer" />` for any WorldWind layer. */
+/** Escape hatch: `<ww-custom-layer [factory]="makeLayer" />` for any WorldWind layer.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-custom-layer',
   template: '',
@@ -195,7 +205,9 @@ export class WwCustomLayerComponent extends WwLayerBase {
   }
 }
 
-/** An OGC WMTS layer configured from the service's GetCapabilities document. */
+/** An OGC WMTS layer configured from the service's GetCapabilities document.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-wmts-layer',
   template: '',
@@ -225,7 +237,13 @@ export class WwWmtsLayerComponent extends WwLayerBase {
   }
 }
 
-/** Loads GeoJSON into its own renderable layer; reloads when `source` or `style` change. */
+/** Loads GeoJSON into its own renderable layer; reloads when `source` or `style` change.
+ * @example
+ * ```html
+ * <ww-geojson-layer [source]="airports" name="Airports" [featureStyle]="airportStyle" (loaded)="onLoaded($event)" />
+ * ```
+ * @category Layers
+ */
 @Component({
   selector: 'ww-geojson-layer',
   template: '',
@@ -272,7 +290,9 @@ export class WwGeoJsonLayerComponent extends WwLayerBase<WWRenderableLayer> {
   }
 }
 
-/** Loads a KML or KMZ document into its own renderable layer. */
+/** Loads a KML or KMZ document into its own renderable layer.
+ * @category Layers
+ */
 @Component({
   selector: 'ww-kml-layer',
   template: '',

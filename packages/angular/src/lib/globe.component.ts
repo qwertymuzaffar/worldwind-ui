@@ -36,6 +36,7 @@ import {
  *   <ww-layer-switcher />
  * </ww-globe>
  * ```
+  * @category Globe
  */
 @Component({
   selector: 'ww-globe',

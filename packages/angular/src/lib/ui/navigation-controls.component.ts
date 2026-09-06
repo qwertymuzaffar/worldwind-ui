@@ -3,7 +3,9 @@ import type { CameraTarget } from 'worldwind-kit';
 import { WwGlobeComponent } from '../globe.component';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
-/** Zoom, north-up, tilt and home buttons. */
+/** Zoom, north-up, tilt and home buttons.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-navigation-controls',
   imports: [WwPanelComponent],

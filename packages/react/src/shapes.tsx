@@ -31,7 +31,9 @@ import {
 import { useGlobe, useGlobeContext, useRenderableLayer } from './context';
 import { deepEqual, useLatest } from './internal/utils';
 
-/** Event props shared by every shape component. */
+/** Event props shared by every shape component.
+ * @category Shapes
+ */
 export interface ShapeEventProps {
   onClick?: PickHandler;
   onDoubleClick?: PickHandler;
@@ -55,7 +57,9 @@ function splitShapeProps<P extends ShapeEventProps>(props: P): [ShapeEventProps,
   return [events, rest as Omit<P, keyof ShapeEventProps>];
 }
 
-/** Registers pick handlers for one renderable through the globe's shared registry. */
+/** Registers pick handlers for one renderable through the globe's shared registry.
+ * @category Shapes
+ */
 export function useShapeEvents(object: (WWRenderable & { highlighted?: boolean }) | null, props: ShapeEventProps): void {
   const { shapeEvents, globe } = useGlobeContext();
   const latest = useLatest(props);
@@ -100,6 +104,7 @@ export function useShapeEvents(object: (WWRenderable & { highlighted?: boolean }
 /**
  * Creates a renderable once, keeps it in the enclosing `<RenderableLayer>`, and applies
  * option changes in place (structural comparison, so inline objects are fine).
+  * @category Shapes
  */
 export function useRenderable<T extends WWRenderable, O>(
   create: (worldWind: WorldWindStatic, options: O) => T,
@@ -132,12 +137,14 @@ export function useRenderable<T extends WWRenderable, O>(
 
 // Components --------------------------------------------------------------------------------------
 
+/** @category Shapes */
 export interface PlacemarkProps extends PlacemarkOptions, ShapeEventProps {
   /** Use one of WorldWind's bundled pushpins. Defaults to `red` when no `imageSource` is given; `false` disables. */
   pushpin?: PushpinColor | false;
   pushpinStyle?: PushpinStyle;
 }
 
+/** @category Shapes */
 export function Placemark(props: PlacemarkProps) {
   const [events, { pushpin, pushpinStyle, ...rest }] = splitShapeProps(props);
   const globe = useGlobe();
@@ -155,8 +162,10 @@ export function Placemark(props: PlacemarkProps) {
   return null;
 }
 
+/** @category Shapes */
 export type PathProps = PathOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function Path(props: PathProps) {
   const [events, options] = splitShapeProps(props);
   const path = useRenderable(createPath, updatePath, options);
@@ -164,8 +173,10 @@ export function Path(props: PathProps) {
   return null;
 }
 
+/** @category Shapes */
 export type PolygonProps = PolygonOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function Polygon(props: PolygonProps) {
   const [events, options] = splitShapeProps(props);
   const polygon = useRenderable(createPolygon, updatePolygon, options);
@@ -173,8 +184,10 @@ export function Polygon(props: PolygonProps) {
   return null;
 }
 
+/** @category Shapes */
 export type SurfacePolylineProps = SurfacePolylineOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function SurfacePolyline(props: SurfacePolylineProps) {
   const [events, options] = splitShapeProps(props);
   const shape = useRenderable(createSurfacePolyline, updateSurfacePolyline, options);
@@ -182,8 +195,10 @@ export function SurfacePolyline(props: SurfacePolylineProps) {
   return null;
 }
 
+/** @category Shapes */
 export type SurfacePolygonProps = SurfacePolygonOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function SurfacePolygon(props: SurfacePolygonProps) {
   const [events, options] = splitShapeProps(props);
   const shape = useRenderable(createSurfacePolygon, updateSurfacePolygon, options);
@@ -191,8 +206,10 @@ export function SurfacePolygon(props: SurfacePolygonProps) {
   return null;
 }
 
+/** @category Shapes */
 export type SurfaceCircleProps = SurfaceCircleOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function SurfaceCircle(props: SurfaceCircleProps) {
   const [events, options] = splitShapeProps(props);
   const shape = useRenderable(createSurfaceCircle, updateSurfaceCircle, options);
@@ -200,8 +217,10 @@ export function SurfaceCircle(props: SurfaceCircleProps) {
   return null;
 }
 
+/** @category Shapes */
 export type GeographicTextProps = GeographicTextOptions & ShapeEventProps;
 
+/** @category Shapes */
 export function GeographicText(props: GeographicTextProps) {
   const [events, options] = splitShapeProps(props);
   const text = useRenderable(createGeographicText, updateGeographicText, options);

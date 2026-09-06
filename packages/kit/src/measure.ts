@@ -13,6 +13,7 @@ import {
 } from './shapes';
 import type { WWPlacemark, WWRenderableLayer, WWSurfacePolyline } from './worldwind-types';
 
+/** @category Tools */
 export interface MeasurementState {
   points: readonly LatLonAlt[];
   /** Length of the path through the points, in metres. */
@@ -23,6 +24,7 @@ export interface MeasurementState {
   active: boolean;
 }
 
+/** @category Tools */
 export interface MeasureToolOptions {
   pathType?: PathType;
   followTerrain?: boolean;
@@ -34,7 +36,9 @@ export interface MeasureToolOptions {
   layerName?: string;
 }
 
-/** Square metres as `m²`, `ha` or `km²`. */
+/** Square metres as `m²`, `ha` or `km²`.
+ * @category Tools
+ */
 export function formatArea(squareMeters: number): string {
   if (!Number.isFinite(squareMeters)) return '';
   if (squareMeters < 10_000) return `${Math.round(squareMeters).toLocaleString('en-US')} m²`;
@@ -45,6 +49,13 @@ export function formatArea(squareMeters: number): string {
 /**
  * Click-to-measure distances and areas. Points are added by clicking the globe while the tool
  * is active; the line and vertex markers live in the tool's own layer.
+  * @example
+ * ```ts
+ * const measure = new MeasureTool(globe);
+ * measure.subscribe((state) => console.log(formatDistance(state.lengthMeters)));
+ * measure.start(); // clicks on the globe now add points
+ * ```
+ * @category Tools
  */
 export class MeasureTool {
   readonly layer: WWRenderableLayer;

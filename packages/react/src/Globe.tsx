@@ -11,6 +11,7 @@ import {
 import { GlobeContext, type GlobeContextValue } from './context';
 import { cx, useLatest } from './internal/utils';
 
+/** @category Globe */
 export interface GlobeProps extends Omit<GlobeOptions, 'projection'> {
   /** Reactive: changing it switches projection on the live globe. */
   projection?: ProjectionKind;
@@ -42,6 +43,16 @@ function usePickSubscription(globe: GlobeController | null, type: PickEventType,
  * above the canvas once the globe is ready, with the globe available through context.
  *
  * Give the element a height (via `className` or `style`); the canvas fills it.
+  * @example
+ * ```tsx
+ * <Globe style={{ height: 480 }} layers={['blue-marble-landsat', 'atmosphere']} view={{ latitude: 40, longitude: -74, range: 2e6 }}>
+ *   <RenderableLayer name="Cities">
+ *     <Placemark position={{ latitude: 40.7128, longitude: -74.006 }} label="New York" />
+ *   </RenderableLayer>
+ *   <LayerSwitcher />
+ * </Globe>
+ * ```
+ * @category Globe
  */
 export function Globe(props: GlobeProps) {
   const {

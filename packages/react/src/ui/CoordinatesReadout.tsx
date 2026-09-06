@@ -3,6 +3,7 @@ import { useCameraState, useHoverPick } from '../hooks';
 import { cx } from '../internal/utils';
 import { Panel, type PanelPosition } from './Panel';
 
+/** @category Widgets */
 export interface CoordinatesReadoutProps {
   position?: PanelPosition;
   format?: 'decimal' | 'dms';
@@ -15,7 +16,9 @@ export interface CoordinatesReadoutProps {
   className?: string;
 }
 
-/** Latitude, longitude and terrain altitude under the mouse, plus the camera range. */
+/** Latitude, longitude and terrain altitude under the mouse, plus the camera range.
+ * @category Widgets
+ */
 export function CoordinatesReadout({
   position = 'bottom-left',
   format = 'decimal',

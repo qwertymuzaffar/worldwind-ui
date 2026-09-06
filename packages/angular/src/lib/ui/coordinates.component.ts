@@ -4,7 +4,9 @@ import { WwGlobeComponent } from '../globe.component';
 import { injectHoverPick } from '../inject';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
-/** Latitude, longitude and terrain altitude under the mouse, plus the camera range. */
+/** Latitude, longitude and terrain altitude under the mouse, plus the camera range.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-coordinates',
   imports: [WwPanelComponent],

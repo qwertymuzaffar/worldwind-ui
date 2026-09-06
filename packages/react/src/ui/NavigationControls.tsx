@@ -3,6 +3,7 @@ import { cx } from '../internal/utils';
 import { useCamera } from '../hooks';
 import { Panel, type PanelPosition } from './Panel';
 
+/** @category Widgets */
 export interface NavigationControlsProps {
   position?: PanelPosition;
   orientation?: 'vertical' | 'horizontal';
@@ -18,7 +19,9 @@ export interface NavigationControlsProps {
   className?: string;
 }
 
-/** Zoom, north-up, tilt and home buttons. */
+/** Zoom, north-up, tilt and home buttons.
+ * @category Widgets
+ */
 export function NavigationControls({
   position = 'top-right',
   orientation = 'vertical',

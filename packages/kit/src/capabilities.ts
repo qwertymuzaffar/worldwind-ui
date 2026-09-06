@@ -1,6 +1,7 @@
 import { applyLayerOptions, type LayerOptions } from './layers';
 import type { WWLayer, WorldWindStatic } from './worldwind-types';
 
+/** @category Layers */
 export interface FetchOptions {
   /** Injectable for tests or custom transports. */
   fetch?: typeof fetch;
@@ -12,7 +13,9 @@ function hasRequestParameter(url: URL): boolean {
   return false;
 }
 
-/** Turns a service endpoint into a GetCapabilities URL (leaves URLs that already ask for capabilities alone). */
+/** Turns a service endpoint into a GetCapabilities URL (leaves URLs that already ask for capabilities alone).
+ * @category Layers
+ */
 export function capabilitiesUrl(service: string, kind: 'WMS' | 'WMTS'): string {
   const url = new URL(service, typeof location === 'undefined' ? 'http://localhost/' : location.href);
   if (!hasRequestParameter(url)) {
@@ -22,7 +25,9 @@ export function capabilitiesUrl(service: string, kind: 'WMS' | 'WMTS'): string {
   return url.toString();
 }
 
-/** Fetches and parses an OGC GetCapabilities document. */
+/** Fetches and parses an OGC GetCapabilities document.
+ * @category Layers
+ */
 export async function fetchCapabilities(url: string, options: FetchOptions = {}): Promise<Document> {
   const doFetch = options.fetch ?? globalThis.fetch;
   if (typeof doFetch !== 'function') throw new Error('worldwind-kit: fetch is not available in this environment');
@@ -35,6 +40,7 @@ export async function fetchCapabilities(url: string, options: FetchOptions = {})
   return document;
 }
 
+/** @category Layers */
 export interface WmtsLayerFromCapabilitiesOptions extends LayerOptions, FetchOptions {
   /** The WMTS endpoint or a full GetCapabilities URL. */
   service: string;
@@ -50,7 +56,9 @@ export interface WmtsLayerFromCapabilitiesOptions extends LayerOptions, FetchOpt
   time?: string | null;
 }
 
-/** Creates a WMTS layer from the service's capabilities document. */
+/** Creates a WMTS layer from the service's capabilities document.
+ * @category Layers
+ */
 export async function createWmtsLayerFromCapabilities(
   worldWind: WorldWindStatic,
   options: WmtsLayerFromCapabilitiesOptions,
@@ -70,6 +78,7 @@ export async function createWmtsLayerFromCapabilities(
   return applyLayerOptions(layer, options);
 }
 
+/** @category Layers */
 export interface WmsLayerFromCapabilitiesOptions extends LayerOptions, FetchOptions {
   /** The WMS endpoint or a full GetCapabilities URL. */
   service: string;
@@ -82,6 +91,7 @@ export interface WmsLayerFromCapabilitiesOptions extends LayerOptions, FetchOpti
 /**
  * Creates a WMS layer from the service's capabilities document, which supplies the sector,
  * formats and tiling that {@link createWmsLayer} otherwise needs by hand.
+  * @category Layers
  */
 export async function createWmsLayerFromCapabilities(
   worldWind: WorldWindStatic,

@@ -3,7 +3,9 @@ import { isInternalLayer, isOverlayLayer, type WWLayer } from 'worldwind-kit';
 import { WwGlobeComponent } from '../globe.component';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
-/** Checkboxes and opacity sliders for every layer on the globe. */
+/** Checkboxes and opacity sliders for every layer on the globe.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-layer-switcher',
   imports: [WwPanelComponent],

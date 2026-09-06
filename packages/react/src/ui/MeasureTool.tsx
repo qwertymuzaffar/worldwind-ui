@@ -3,13 +3,16 @@ import { useMeasureTool } from '../hooks';
 import { cx } from '../internal/utils';
 import { Panel, type PanelPosition } from './Panel';
 
+/** @category Widgets */
 export interface MeasureToolProps extends MeasureToolOptions {
   position?: PanelPosition;
   heading?: string | null;
   className?: string;
 }
 
-/** Click-to-measure distances and areas, with start/stop, undo and clear. */
+/** Click-to-measure distances and areas, with start/stop, undo and clear.
+ * @category Widgets
+ */
 export function MeasureTool({ position = 'top-left', heading = 'Measure', className, ...options }: MeasureToolProps) {
   const { state, toggle, undo, clear } = useMeasureTool(options);
   const { points, lengthMeters, areaSquareMeters, active } = state;

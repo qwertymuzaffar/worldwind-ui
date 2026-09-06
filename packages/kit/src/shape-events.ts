@@ -8,6 +8,7 @@ import type { PickEvent, PickEventType, PickHandler } from './picking';
  *
  * `click` and `dblclick` handlers fire only when their object is among the picked items.
  * `hover` handlers fire for every hover event (so they can detect leave as well as enter).
+  * @category Picking
  */
 export class ShapeEventRegistry {
   private readonly handlers = new Map<PickEventType, Map<unknown, Set<PickHandler>>>();

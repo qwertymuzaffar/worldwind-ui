@@ -2,6 +2,7 @@ import { createEmitter, type Unsubscribe } from './events';
 import { clampLatitude, normalizeLongitude, type LatLon } from './geo';
 import type { WWRedrawCallback, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
+/** @category Camera */
 export interface CameraState {
   latitude: number;
   longitude: number;
@@ -14,6 +15,7 @@ export interface CameraState {
   roll: number;
 }
 
+/** @category Camera */
 export interface CameraTarget extends LatLon {
   range?: number;
   heading?: number;
@@ -21,11 +23,13 @@ export interface CameraTarget extends LatLon {
   roll?: number;
 }
 
+/** @category Camera */
 export interface GoToOptions {
   /** Animation length in milliseconds. `0` jumps immediately. Defaults to 3000. */
   duration?: number;
 }
 
+/** @category Camera */
 export const DEFAULT_GO_TO_DURATION = 3000;
 
 const EPSILON = 1e-9;
@@ -41,7 +45,9 @@ function statesEqual(a: CameraState, b: CameraState): boolean {
   );
 }
 
-/** Reads and drives the WorldWindow navigator, with animated `goTo` and change subscriptions. */
+/** Reads and drives the WorldWindow navigator, with animated `goTo` and change subscriptions.
+ * @category Camera
+ */
 export class CameraController {
   private readonly emitter = createEmitter<CameraState>();
   private readonly redrawCallback: WWRedrawCallback;

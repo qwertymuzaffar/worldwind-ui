@@ -12,7 +12,9 @@ import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
 const IDLE: MeasurementState = { points: [], lengthMeters: 0, areaSquareMeters: null, active: false };
 
-/** Click-to-measure distances and areas, with start/stop, undo and clear. */
+/** Click-to-measure distances and areas, with start/stop, undo and clear.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-measure-tool',
   imports: [WwPanelComponent],

@@ -1,7 +1,9 @@
 import { createEmitter, type Unsubscribe } from './events';
 import type { WWLayer, WWWmsLayerConfig, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
-/** Layers that WorldWind ships with, addressable by a short name. */
+/** Layers that WorldWind ships with, addressable by a short name.
+ * @category Layers
+ */
 export type BuiltInLayerKind =
   | 'blue-marble'
   | 'blue-marble-image'
@@ -19,6 +21,7 @@ export type BuiltInLayerKind =
   | 'tessellation'
   | 'tectonic-plates';
 
+/** @category Layers */
 export const BUILT_IN_LAYER_KINDS: readonly BuiltInLayerKind[] = [
   'blue-marble',
   'blue-marble-image',
@@ -37,7 +40,9 @@ export const BUILT_IN_LAYER_KINDS: readonly BuiltInLayerKind[] = [
   'tectonic-plates',
 ];
 
-/** Screen-space layers (compass, coordinates, view controls, statistics) rather than map content. */
+/** Screen-space layers (compass, coordinates, view controls, statistics) rather than map content.
+ * @category Layers
+ */
 export const OVERLAY_LAYER_KINDS: readonly BuiltInLayerKind[] = [
   'compass',
   'coordinates',
@@ -45,8 +50,10 @@ export const OVERLAY_LAYER_KINDS: readonly BuiltInLayerKind[] = [
   'frame-statistics',
 ];
 
+/** @category Layers */
 export const BING_LAYER_KINDS: readonly BuiltInLayerKind[] = ['bing-aerial', 'bing-aerial-labels', 'bing-roads'];
 
+/** @category Layers */
 export interface LayerOptions {
   displayName?: string;
   enabled?: boolean;
@@ -57,6 +64,7 @@ export interface LayerOptions {
   maxActiveAltitude?: number;
 }
 
+/** @category Layers */
 export function applyLayerOptions<L extends WWLayer>(layer: L, options: LayerOptions = {}): L {
   if (options.displayName !== undefined) layer.displayName = options.displayName;
   if (options.enabled !== undefined) layer.enabled = options.enabled;
@@ -67,7 +75,9 @@ export function applyLayerOptions<L extends WWLayer>(layer: L, options: LayerOpt
   return layer;
 }
 
-/** Instantiates one of WorldWind's built-in layers. Bing layers need `WorldWind.BingMapsKey` to be set. */
+/** Instantiates one of WorldWind's built-in layers. Bing layers need `WorldWind.BingMapsKey` to be set.
+ * @category Layers
+ */
 export function createBuiltInLayer(
   worldWind: WorldWindStatic,
   wwd: WWWorldWindow,
@@ -132,33 +142,45 @@ export function createBuiltInLayer(
   return applyLayerOptions(layer, options);
 }
 
-/** Property under which {@link createBuiltInLayer} records a layer's kind. */
+/** Property under which {@link createBuiltInLayer} records a layer's kind.
+ * @category Layers
+ */
 export const BUILT_IN_KIND_KEY = '__wwuiKind';
 
-/** The built-in kind a layer was created with, if it came from {@link createBuiltInLayer}. */
+/** The built-in kind a layer was created with, if it came from {@link createBuiltInLayer}.
+ * @category Layers
+ */
 export function builtInLayerKind(layer: WWLayer): BuiltInLayerKind | undefined {
   return layer[BUILT_IN_KIND_KEY] as BuiltInLayerKind | undefined;
 }
 
-/** True for screen-space layers such as the compass or view controls. */
+/** True for screen-space layers such as the compass or view controls.
+ * @category Layers
+ */
 export function isOverlayLayer(layer: WWLayer): boolean {
   const kind = builtInLayerKind(layer);
   return kind !== undefined && OVERLAY_LAYER_KINDS.includes(kind);
 }
 
-/** Property under which {@link markInternalLayer} flags layers owned by tools rather than by the app. */
+/** Property under which {@link markInternalLayer} flags layers owned by tools rather than by the app.
+ * @category Layers
+ */
 export const INTERNAL_LAYER_KEY = '__wwuiInternal';
 
-/** Flags a layer as belonging to a tool (for example the measurement tool), so layer switchers hide it. */
+/** Flags a layer as belonging to a tool (for example the measurement tool), so layer switchers hide it.
+ * @category Layers
+ */
 export function markInternalLayer<L extends WWLayer>(layer: L): L {
   (layer as WWLayer)[INTERNAL_LAYER_KEY] = true;
   return layer;
 }
 
+/** @category Layers */
 export function isInternalLayer(layer: WWLayer): boolean {
   return layer[INTERNAL_LAYER_KEY] === true;
 }
 
+/** @category Layers */
 export interface SectorInput {
   minLatitude: number;
   maxLatitude: number;
@@ -166,6 +188,7 @@ export interface SectorInput {
   maxLongitude: number;
 }
 
+/** @category Layers */
 export interface WmsLayerOptions extends LayerOptions {
   /** WMS endpoint, e.g. `https://example.org/geoserver/wms`. */
   service: string;
@@ -189,6 +212,7 @@ export interface WmsLayerOptions extends LayerOptions {
   time?: string | null;
 }
 
+/** @category Layers */
 export function createWmsLayer(worldWind: WorldWindStatic, options: WmsLayerOptions): WWLayer {
   const delta = options.levelZeroDelta ?? 36;
   const sector = options.sector
@@ -216,8 +240,10 @@ export function createWmsLayer(worldWind: WorldWindStatic, options: WmsLayerOpti
   return applyLayerOptions(layer, options);
 }
 
+/** @category Layers */
 export type LayerChangeType = 'add' | 'remove' | 'move' | 'update' | 'clear';
 
+/** @category Layers */
 export interface LayerChange {
   type: LayerChangeType;
   /** The affected layer, or null for `clear`. */
@@ -229,6 +255,7 @@ export interface LayerChange {
 /**
  * Observable wrapper around `WorldWindow.layers`. Every mutation requests a redraw and
  * notifies subscribers, which is what UI such as a layer switcher needs.
+  * @category Layers
  */
 export class LayerManager {
   private readonly emitter = createEmitter<LayerChange>();

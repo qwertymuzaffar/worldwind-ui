@@ -12,7 +12,9 @@ import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
 type Status = { kind: 'idle' } | { kind: 'searching' } | { kind: 'empty' } | { kind: 'error'; message: string };
 
-/** A search box: type `lat, lon` or a place name and fly there. */
+/** A search box: type `lat, lon` or a place name and fly there.
+ * @category Widgets
+ */
 @Component({
   selector: 'ww-goto-box',
   imports: [WwPanelComponent],

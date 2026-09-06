@@ -4,6 +4,7 @@ import { useProjection } from '../hooks';
 import { cx } from '../internal/utils';
 import { Panel, type PanelPosition } from './Panel';
 
+/** @category Widgets */
 export interface ProjectionSwitcherProps {
   position?: PanelPosition;
   heading?: string | null;
@@ -14,7 +15,9 @@ export interface ProjectionSwitcherProps {
   className?: string;
 }
 
-/** Buttons that switch between the 3D globe and the flat projections. */
+/** Buttons that switch between the 3D globe and the flat projections.
+ * @category Widgets
+ */
 export function ProjectionSwitcher({
   position = 'top-left',
   heading = 'Projection',

@@ -10,6 +10,7 @@ declare global {
   }
 }
 
+/** @category Loading WorldWind */
 export interface LoadWorldWindOptions {
   /**
    * Custom loader. Defaults to `import('@nasaworldwind/worldwind')`. Use this to load a
@@ -26,7 +27,9 @@ function looksLikeWorldWind(candidate: unknown): candidate is WorldWindStatic {
   );
 }
 
-/** Accepts the raw module namespace, a default export, or the global and returns the namespace. */
+/** Accepts the raw module namespace, a default export, or the global and returns the namespace.
+ * @category Loading WorldWind
+ */
 export function unwrapWorldWindModule(mod: unknown): WorldWindStatic {
   if (looksLikeWorldWind(mod)) return mod;
   const withDefault = mod as { default?: unknown } | null | undefined;
@@ -53,6 +56,7 @@ function defaultLoader(): Promise<unknown> {
 /**
  * Loads NASA WorldWind lazily (browser only) and caches the namespace.
  * Safe to call many times; concurrent callers share one in-flight import.
+  * @category Loading WorldWind
  */
 export function loadWorldWind(options: LoadWorldWindOptions = {}): Promise<WorldWindStatic> {
   if (instance) return Promise.resolve(instance);
@@ -71,13 +75,17 @@ export function loadWorldWind(options: LoadWorldWindOptions = {}): Promise<World
   return pending;
 }
 
-/** Injects a WorldWind namespace directly (custom build, or the fake from `worldwind-kit/testing`). */
+/** Injects a WorldWind namespace directly (custom build, or the fake from `worldwind-kit/testing`).
+ * @category Loading WorldWind
+ */
 export function setWorldWind(worldWind: WorldWindStatic | null): void {
   instance = worldWind;
   pending = null;
 }
 
-/** Returns the loaded namespace, or throws if `loadWorldWind()` has not completed. */
+/** Returns the loaded namespace, or throws if `loadWorldWind()` has not completed.
+ * @category Loading WorldWind
+ */
 export function getWorldWind(): WorldWindStatic {
   if (!instance) {
     throw new Error(
@@ -87,17 +95,21 @@ export function getWorldWind(): WorldWindStatic {
   return instance;
 }
 
+/** @category Loading WorldWind */
 export function isWorldWindLoaded(): boolean {
   return instance !== null;
 }
 
-/** The official WorldWind bundle on a CDN, matching {@link DEFAULT_WORLDWIND_VERSION}. */
+/** The official WorldWind bundle on a CDN, matching {@link DEFAULT_WORLDWIND_VERSION}.
+ * @category Loading WorldWind
+ */
 export const DEFAULT_WORLDWIND_SCRIPT_URL = `https://unpkg.com/@nasaworldwind/worldwind@${DEFAULT_WORLDWIND_VERSION}/build/dist/worldwind.min.js`;
 
 /**
  * A loader that adds a `<script>` tag instead of bundling WorldWind. Use it with
  * `loadWorldWind({ loader: scriptLoader() })` (or a `loadOptions` prop) to keep the 1.7 MB
  * bundle out of your build, or as an alternative to the Vite plugin.
+  * @category Loading WorldWind
  */
 export function scriptLoader(src: string = DEFAULT_WORLDWIND_SCRIPT_URL): () => Promise<unknown> {
   return () =>

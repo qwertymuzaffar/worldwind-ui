@@ -2,6 +2,7 @@ import type { Unsubscribe } from './events';
 import { fromPosition, type LatLonAlt } from './geo';
 import type { WWGestureRecognizer, WWLayer, WWPickedObject, WWWorldWindow, WorldWindStatic } from './worldwind-types';
 
+/** @category Picking */
 export interface PickedItem {
   /** The picked renderable (Placemark, Path, ...) or the terrain object. */
   object: unknown;
@@ -11,6 +12,7 @@ export interface PickedItem {
   isOnTop: boolean;
 }
 
+/** @category Picking */
 export interface PickResult {
   clientX: number;
   clientY: number;
@@ -21,6 +23,7 @@ export interface PickResult {
   top: PickedItem | null;
 }
 
+/** @category Picking */
 export interface PickOptions {
   /** Only pick the terrain, which is much cheaper than a full pick. */
   terrainOnly?: boolean;
@@ -36,7 +39,9 @@ function toItem(picked: WWPickedObject): PickedItem {
   };
 }
 
-/** Picks whatever is under a point given in client (viewport) coordinates. */
+/** Picks whatever is under a point given in client (viewport) coordinates.
+ * @category Picking
+ */
 export function pickAt(
   wwd: WWWorldWindow,
   clientX: number,
@@ -51,12 +56,15 @@ export function pickAt(
   return { clientX, clientY, position: terrain?.position ?? null, items, top };
 }
 
+/** @category Picking */
 export type PickEventType = 'click' | 'dblclick' | 'hover';
 
+/** @category Picking */
 export interface PickEvent extends PickResult {
   type: PickEventType;
 }
 
+/** @category Picking */
 export type PickHandler = (event: PickEvent) => void;
 
 const requestFrame: (callback: () => void) => number =
@@ -67,6 +75,7 @@ const requestFrame: (callback: () => void) => number =
 const cancelFrame: (handle: number) => void =
   typeof cancelAnimationFrame === 'function' ? (handle) => cancelAnimationFrame(handle) : (handle) => clearTimeout(handle);
 
+/** @category Picking */
 export interface PickSubscription {
   stop: Unsubscribe;
   /** The gesture recognizers created for click-like subscriptions (none for hover). */
@@ -77,6 +86,7 @@ export interface PickSubscription {
  * Low-level subscription. Prefer {@link PickDispatcher} (used by `GlobeController.on`): WorldWind
  * lets only one recognizer claim a gesture, so a second independent click recognizer on the same
  * window never fires unless the two are told to recognize simultaneously.
+  * @category Picking
  */
 export function subscribePick(
   worldWind: WorldWindStatic,
@@ -130,6 +140,7 @@ export function subscribePick(
 /**
  * Subscribes to picks. `click` and `dblclick` use WorldWind's gesture recognizers, so drags are
  * ignored and touch taps count; `hover` follows the mouse, throttled to one pick per frame.
+  * @category Picking
  */
 export function onPick(
   worldWind: WorldWindStatic,
@@ -145,6 +156,7 @@ export function onPick(
  * The recognizers it creates are allowed to recognize simultaneously with each other, so clicks
  * and double-clicks coexist. Recognizers stay registered (disabled while unused) because
  * WorldWind favours the earliest-registered recognizer for a gesture.
+  * @category Picking
  */
 export class PickDispatcher {
   private readonly handlers = new Map<PickEventType, Set<PickHandler>>();
