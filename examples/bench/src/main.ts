@@ -2,7 +2,7 @@
  * Benchmark page for worldwind-kit. `window.bench.run(scenario)` builds a scenario, then measures
  * draw time per frame while the camera orbits. Driven by scripts/bench.mjs.
  */
-import { GlobeController, createPath, createPlacemark, loadGeoJson, pushpinUrl, type LatLonAlt } from 'worldwind-kit';
+import { ClusterLayer, GlobeController, createPath, createPlacemark, loadGeoJson, pushpinUrl, type LatLonAlt } from 'worldwind-kit';
 
 const status = document.getElementById('status')!;
 const say = (text: string) => (status.textContent = text);
@@ -36,6 +36,8 @@ const SCENARIOS: Record<string, { objects: number; build: (globe: GlobeControlle
   'placemarks-1k': { objects: 1_000, build: (globe) => placemarks(globe, 1_000) },
   'placemarks-10k': { objects: 10_000, build: (globe) => placemarks(globe, 10_000) },
   'placemarks-50k': { objects: 50_000, build: (globe) => placemarks(globe, 50_000) },
+  'clustered-10k': { objects: 10_000, build: (globe) => clustered(globe, 10_000) },
+  'clustered-50k': { objects: 50_000, build: (globe) => clustered(globe, 50_000) },
   'geojson-10k': { objects: 10_500, build: (globe) => geojson(globe, 10_000, 500) },
   'paths-500': { objects: 500, build: (globe) => paths(globe, 500) },
 };
@@ -47,6 +49,14 @@ function placemarks(globe: GlobeController, count: number) {
   for (let i = 0; i < count; i += 1) {
     layer.addRenderable(createPlacemark(globe.worldWind, { position: randomPoint(random), imageSource: image, imageScale: 0.5 }));
   }
+}
+
+/** The same points as the placemark scenarios, drawn through a ClusterLayer instead. */
+function clustered(globe: GlobeController, count: number) {
+  const random = rng(42);
+  const items: LatLonAlt[] = [];
+  for (let i = 0; i < count; i += 1) items.push(randomPoint(random));
+  new ClusterLayer(globe, items, { layerName: `Clustered ${count}`, zoomOnClick: false });
 }
 
 function paths(globe: GlobeController, count: number) {

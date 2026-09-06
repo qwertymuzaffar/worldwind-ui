@@ -85,7 +85,9 @@ ${table(results[modes[1].name])}
 
 - Placemarks are the expensive object: each is a textured quad with its own picking colour, and WorldWind
   sorts and draws them one by one. Ten thousand still hit 60 frames per second on a laptop GPU; fifty
-  thousand is where a cluster layer would be needed. The software renderer shows where the cost goes.
+  thousand do not. The \`clustered\` rows draw the same points through \`ClusterLayer\`: only a few hundred
+  markers reach the GPU at any zoom, so fifty thousand cost about as much as one thousand. The software
+  renderer shows where the cost goes.
 - GeoJSON polygons are surface shapes: tessellated onto the terrain once, then cheap per frame. The
   points in that scenario are placemarks and dominate its draw time.
 - Paths are tessellated once and cost almost nothing per frame.

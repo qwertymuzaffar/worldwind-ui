@@ -17,12 +17,14 @@ Renderer: `ANGLE (Apple, ANGLE Metal Renderer: Apple M1 Pro, Unspecified Version
 
 | Scenario | Objects | Setup | Draw time avg | Draw time p95 | Frames/s | Heap growth |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| baseline | 0 | 1 ms | 1.9 ms | 2.7 ms | 60 | 0.1 MB |
-| placemarks-1k | 1,000 | 16 ms | 3.1 ms | 3.8 ms | 60 | 1.9 MB |
-| placemarks-10k | 10,000 | 66 ms | 12 ms | 13.7 ms | 60 | 15.2 MB |
-| placemarks-50k | 50,000 | 197 ms | 66.2 ms | 74.2 ms | 15 | 74.4 MB |
-| geojson-10k | 10,500 | 122 ms | 22.3 ms | 24.2 ms | 44 | 18.8 MB |
-| paths-500 | 500 | 16 ms | 2.4 ms | 3 ms | 60 | 2 MB |
+| baseline | 0 | 0 ms | 2.1 ms | 3.3 ms | 60 | 0.2 MB |
+| placemarks-1k | 1,000 | 12 ms | 2.9 ms | 3.5 ms | 60 | 1.9 MB |
+| placemarks-10k | 10,000 | 50 ms | 14 ms | 18.6 ms | 60 | 15.1 MB |
+| placemarks-50k | 50,000 | 204 ms | 69.1 ms | 73.5 ms | 14 | 74.3 MB |
+| clustered-10k | 10,000 | 48 ms | 5.2 ms | 6.1 ms | 60 | 3.8 MB |
+| clustered-50k | 50,000 | 56 ms | 5 ms | 5.5 ms | 60 | 5.8 MB |
+| geojson-10k | 10,500 | 154 ms | 23.5 ms | 25.3 ms | 42 | 18.9 MB |
+| paths-500 | 500 | 14 ms | 2.9 ms | 3.5 ms | 60 | 2 MB |
 
 ## Software (SwiftShader)
 
@@ -30,18 +32,22 @@ What a CI runner or a machine without a usable GPU sees. Renderer: `ANGLE (Googl
 
 | Scenario | Objects | Setup | Draw time avg | Draw time p95 | Frames/s | Heap growth |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| baseline | 0 | 6 ms | 1.3 ms | 1.5 ms | 15 | 0.2 MB |
-| placemarks-1k | 1,000 | 18 ms | 2.4 ms | 2.6 ms | 20 | 1.9 MB |
-| placemarks-10k | 10,000 | 66 ms | 117.4 ms | 127.3 ms | 9 | 15.1 MB |
-| placemarks-50k | 50,000 | 210 ms | 441.3 ms | 481.8 ms | 2 | 74.3 MB |
-| geojson-10k | 10,500 | 410 ms | 156.6 ms | 206.4 ms | 6 | 19 MB |
-| paths-500 | 500 | 21 ms | 2.1 ms | 2.3 ms | 20 | 2 MB |
+| baseline | 0 | 1 ms | 1.3 ms | 1.5 ms | 22 | 0.2 MB |
+| placemarks-1k | 1,000 | 18 ms | 2.5 ms | 2.7 ms | 19 | 1.9 MB |
+| placemarks-10k | 10,000 | 63 ms | 110.4 ms | 127.3 ms | 9 | 15.1 MB |
+| placemarks-50k | 50,000 | 219 ms | 407.8 ms | 454.2 ms | 2 | 74.3 MB |
+| clustered-10k | 10,000 | 50 ms | 55.6 ms | 67.3 ms | 16 | 3.8 MB |
+| clustered-50k | 50,000 | 63 ms | 56.2 ms | 67.3 ms | 16 | 5.8 MB |
+| geojson-10k | 10,500 | 447 ms | 160.8 ms | 211 ms | 6 | 19 MB |
+| paths-500 | 500 | 24 ms | 2.2 ms | 2.5 ms | 19 | 2 MB |
 
 ## Reading the numbers
 
 - Placemarks are the expensive object: each is a textured quad with its own picking colour, and WorldWind
   sorts and draws them one by one. Ten thousand still hit 60 frames per second on a laptop GPU; fifty
-  thousand is where a cluster layer would be needed. The software renderer shows where the cost goes.
+  thousand do not. The `clustered` rows draw the same points through `ClusterLayer`: only a few hundred
+  markers reach the GPU at any zoom, so fifty thousand cost about as much as one thousand. The software
+  renderer shows where the cost goes.
 - GeoJSON polygons are surface shapes: tessellated onto the terrain once, then cheap per frame. The
   points in that scenario are placemarks and dominate its draw time.
 - Paths are tessellated once and cost almost nothing per frame.
