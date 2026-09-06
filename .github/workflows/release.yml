@@ -6,12 +6,48 @@ on:
 
 concurrency: release-${{ github.ref }}
 
+# Publishing uses npm trusted publishing (OpenID Connect): no npm token is stored anywhere.
+# Each package on npmjs.com lists this repository and this workflow file as its trusted publisher.
 jobs:
-  release:
+  mode:
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.select.outputs.mode }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - id: select
+        uses: changesets/action/select-mode@v2
+
+  version:
+    needs: mode
+    if: needs.mode.outputs.mode == 'version'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Open or update the version PR
+        uses: changesets/action/version@v2
+        with:
+          script: npm run version-packages
+
+  publish:
+    needs: mode
+    if: needs.mode.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v5
@@ -20,18 +56,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Check for an npm token
-        id: npm
-        run: echo "configured=${{ secrets.NPM_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
-      - name: Create release PR or publish
-        if: steps.npm.outputs.configured == 'true'
-        uses: changesets/action@v1
+      # Trusted publishing needs npm 11.5.1 or newer; Node 22 bundles npm 10.
+      - run: npm install -g npm@latest && npm --version
+      - name: Build, publish with provenance, tag and create GitHub releases
+        uses: changesets/action/publish@v2
         with:
-          version: npm run version-packages
-          publish: npm run release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Skipped
-        if: steps.npm.outputs.configured != 'true'
-        run: echo "NPM_TOKEN is not set; add it in the repository secrets to enable publishing."
+          script: npm run release
+          create-github-releases: true

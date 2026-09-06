@@ -121,8 +121,11 @@ npm run dev -w angular-demo
 `.npmrc` sets `legacy-peer-deps=true`: `@angular/build` declares an optional peer dependency on
 Vitest 4 and npm 10 crashes on the conflict with the Vitest 5 used here instead of skipping it.
 
-Releases use [Changesets](.changeset/README.md): `npm run changeset`, then `npm run version-packages`
-and `npm run release`, or let the release workflow open the version PR.
+Releases use [Changesets](.changeset/README.md). Run `npm run changeset` with a change, merge to
+`main`, and the release workflow opens a "Version Packages" pull request. Merging that PR publishes
+the packages with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers): the workflow
+authenticates with an OpenID Connect token and every release carries a provenance attestation, so
+no npm token is stored in the repository.
 
 ## Status
 
