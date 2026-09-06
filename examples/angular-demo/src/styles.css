@@ -14,7 +14,8 @@ app-root {
 /* demo layout: stack panels that share a corner */
 .wwui-panel.wwui-panel--below-goto { top: 110px; }
 .wwui-panel.wwui-panel--beside-nav { right: 64px; }
-.wwui-panel.wwui-panel--below-nav { top: 262px; }
+.wwui-panel.wwui-panel--below-projection { top: 103px; right: 64px; }
+.wwui-panel.wwui-panel--below-measure { top: 260px; }
 .wwui-panel.wwui-panel--above-coords { bottom: 64px; }
 .wwui-panel.wwui-panel--above-status { bottom: 116px; }
 .wwui-panel.wwui-panel--above-attribution { bottom: 46px; }
@@ -23,10 +24,11 @@ app-root {
 /* demo layout on phones: fewer panels, no overlaps */
 @media (max-width: 720px) {
   .wwui-panel.wwui-panel--beside-nav,
-  .wwui-panel.wwui-panel--below-nav,
+  .wwui-panel.wwui-panel--below-projection,
   .wwui-panel.wwui-panel--above-coords,
   .wwui-panel.wwui-panel--above-status,
   .wwui-panel.wwui-panel--above-attribution,
+  .wwui-panel.wwui-panel--below-measure,
   .wwui-panel.wwui-time-panel { display: none; }
   .wwui-panel.wwui-panel--below-goto { top: 96px; }
   .wwui-panel.wwui-coords-panel { bottom: 46px; }

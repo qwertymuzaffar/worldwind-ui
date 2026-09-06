@@ -33,7 +33,7 @@ type Status = { kind: 'idle' } | { kind: 'searching' } | { kind: 'empty' } | { k
 export function GoToBox({
   position = 'top-left',
   heading = 'Go to',
-  placeholder = 'Place name or "lat, lon"',
+  placeholder = 'City or "lat, lon"',
   duration = 2000,
   defaultRange = 200_000,
   geocoding = {},

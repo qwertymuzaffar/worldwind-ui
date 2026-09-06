@@ -69,6 +69,33 @@ const GIBS_CREDIT: LayerAttribution = {
   url: 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api',
 };
 
+interface Station {
+  latitude: number;
+  longitude: number;
+  name: string;
+}
+
+/** Deterministic pseudo-random points, so the clustered layer looks the same on every load. */
+function samplePoints(count: number, seed: number): Station[] {
+  let state = seed >>> 0;
+  const random = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const points: Station[] = [];
+  for (let i = 0; i < count; i += 1) {
+    // Clumped around a few centres so clusters split as you zoom.
+    const centre = Math.floor(random() * 12);
+    const spread = 4 + (centre % 3) * 6;
+    points.push({
+      latitude: Math.max(-80, Math.min(80, ((centre * 47) % 140) - 70 + (random() - 0.5) * spread)),
+      longitude: ((centre * 97) % 360) - 180 + (random() - 0.5) * spread * 2,
+      name: `Station ${i + 1}`,
+    });
+  }
+  return points;
+}
+
 /** The last 30 days up to yesterday (GIBS publishes with about a day of latency). */
 function recentDays(): TimeDimension {
   const now = new Date();
@@ -127,6 +154,8 @@ const CITIES: City[] = [
         }
       </ww-renderable-layer>
 
+      <ww-cluster-layer [items]="stations" name="Stations (5,000 clustered)" [radius]="56" (itemClick)="selectedStation.set($event.item.name)" />
+
       <ww-geojson-layer [source]="airports" name="Airports" [featureStyle]="airportStyle" [legend]="airportLegend" />
 
       @if (popup(); as p) {
@@ -139,11 +168,12 @@ const CITIES: City[] = [
 
       <ww-goto-box position="top-left" />
       <ww-measure-tool position="top-left" panelClass="wwui-panel--below-goto" />
+      <ww-draw-tool position="top-left" panelClass="wwui-panel--below-measure" [showDownload]="true" />
       <ww-layer-switcher position="bottom-right" />
-      <ww-navigation-controls position="top-right" [home]="home" />
+      <ww-navigation-controls position="top-right" [home]="home" [fullscreen]="true" [screenshot]="true" />
       <ww-coordinates position="bottom-left" />
       <ww-projection-switcher position="top-right" panelClass="wwui-panel--beside-nav" />
-      <ww-compass position="top-right" panelClass="wwui-panel--below-nav" />
+      <ww-compass position="top-right" panelClass="wwui-panel--below-projection" />
       <ww-time-slider position="bottom-center" panelClass="wwui-panel--above-scale" />
       <ww-legend position="bottom-left" panelClass="wwui-panel--above-status" />
       <ww-scale-bar position="bottom-center" panelClass="wwui-panel--above-attribution" />
@@ -175,6 +205,8 @@ export class AppComponent {
   readonly home: CameraTarget = { latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 };
 
   readonly selected = signal<City | null>(null);
+  readonly selectedStation = signal<string | null>(null);
+  readonly stations: Station[] = samplePoints(5000, 7);
   readonly lastClick = signal<PickEvent | null>(null);
   readonly popup = signal<PopupState | null>(null);
 
@@ -198,7 +230,8 @@ export class AppComponent {
   readonly status = computed(() => {
     const selected = this.selected();
     const click = this.lastClick();
-    const base = selected ? `Selected: ${selected.name}` : 'Click a pin to fly there';
+    const station = this.selectedStation();
+    const base = selected ? `Selected: ${selected.name}` : station ? `Selected: ${station}` : 'Click a pin to fly there';
     return click?.position ? `${base} · last click ${formatLatLon(click.position, { precision: 2 })}` : base;
   });
 }

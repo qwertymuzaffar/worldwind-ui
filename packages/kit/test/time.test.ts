@@ -154,23 +154,37 @@ describe('formatting', () => {
 });
 
 describe('setLayerTime', () => {
-  it('updates the URL builder, expires the imagery and reports the value', () => {
+  it('updates the URL builder, starts a tile set per instant and reports the value', () => {
     const layer = new FakeWmsLayer({ service: 's', layerNames: 'l' }, '2024-01-01');
+    expect(layer.cachePath).toBe('sl2024-01-01');
     expect(setLayerTime(layer, new Date('2024-01-02T00:00:00Z'))).toBe('2024-01-02');
     expect(layer.timeString).toBe('2024-01-02');
     expect(layer.urlBuilder.timeString).toBe('2024-01-02');
     expect(layer.time?.toISOString()).toBe('2024-01-02T00:00:00.000Z');
-    expect(layer.refreshCount).toBe(1);
     expect(layerTime(layer)).toBe('2024-01-02');
+    // Tiled layers get a fresh tile set under a time-specific cache path instead of an expiry.
+    expect(layer.cachePath).toBe('sl2024-01-02');
+    expect(layer.topLevelTiles).toEqual([]);
+    expect(layer.tileCache.cleared).toBe(1);
+    expect(layer.currentTilesInvalid).toBe(true);
+    expect(layer.refreshCount).toBe(0);
 
     setLayerTimeDimension(layer, parseTimeDimension('2024-01-01/2024-01-02/PT1H'));
     expect(setLayerTime(layer, new Date('2024-01-02T00:00:00Z'))).toBe('2024-01-02T00:00:00Z');
     expect(setLayerTime(layer, '2024-03-01T06:00:00Z')).toBe('2024-03-01T06:00:00Z');
     expect(layer.time?.toISOString()).toBe('2024-03-01T06:00:00.000Z');
+    expect(layer.cachePath).toBe('sl2024-03-01T06:00:00Z');
 
     setLayerTime(layer, null);
     expect(layerTime(layer)).toBeNull();
     expect(layer.time).toBeNull();
-    expect(layer.refreshCount).toBe(4);
+    expect(layer.cachePath).toBe('sl');
+    expect(layer.tileCache.cleared).toBe(4);
+
+    // Layers without tiles are refreshed instead.
+    const plain = new FakeLayer('Plain');
+    expect(setLayerTime(plain, '2024')).toBe('2024');
+    expect(plain.timeString).toBe('2024');
+    expect(plain.refreshCount).toBe(1);
   });
 });

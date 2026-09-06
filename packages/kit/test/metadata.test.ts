@@ -76,7 +76,7 @@ describe('LayerManager.setTime', () => {
     expect(manager.setTime(layer, '2024-01-01')).toBe('2024-01-01');
     expect(changes).toEqual(['update']);
     expect(layer.timeString).toBe('2024-01-01');
-    expect(layer.refreshCount).toBe(1);
+    expect(layer.cachePath).toBe('sl2024-01-01');
   });
 });
 

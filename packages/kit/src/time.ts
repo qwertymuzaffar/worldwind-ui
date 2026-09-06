@@ -335,19 +335,40 @@ export function layerTime(layer: WWLayer): string | null {
   return typeof layer.timeString === 'string' && layer.timeString ? layer.timeString : null;
 }
 
+/** Property under which {@link setLayerTime} remembers a tiled layer's cache path without a time.
+ * @category Time
+ */
+export const BASE_CACHE_PATH_KEY = '__wwuiBaseCachePath';
+
 /**
- * Changes the `TIME` a WMS or WMTS layer requests and refreshes its tiles. WorldWind only takes
- * the time at construction, so this updates the layer's URL builder and expires the imagery it
- * has; the old tiles stay visible until the new ones arrive.
+ * Changes the `TIME` a WMS or WMTS layer requests. WorldWind only takes the time at
+ * construction, so this updates the layer's URL builder and gives the layer a tile set of its
+ * own per instant: the imagery already fetched for an instant stays in WorldWind's texture
+ * cache, so stepping back to it is immediate. Layers without tiles are simply refreshed.
  * @returns The request value that was applied.
  * @category Time
  */
 export function setLayerTime(layer: WWLayer, time: Date | string | null, options: { format?: TimeFormat } = {}): string | null {
   const value = time === null ? null : typeof time === 'string' ? time : formatWmsTime(time, options.format, layerTimeDimension(layer)?.stepMs);
+  if (typeof layer.cachePath === 'string') {
+    let base = layer[BASE_CACHE_PATH_KEY];
+    if (typeof base !== 'string') {
+      base = layer.cachePath;
+      const initial = layer.timeString;
+      if (typeof initial === 'string' && initial && base.endsWith(initial)) base = base.slice(0, -initial.length);
+      layer[BASE_CACHE_PATH_KEY] = base;
+    }
+    layer.cachePath = value ? base + value : base;
+    // Tiles keep the image path they were created with, so start a fresh tile set under the new path.
+    layer.topLevelTiles = [];
+    if (layer.tileCache && typeof layer.tileCache.clear === 'function') layer.tileCache.clear();
+    layer.currentTilesInvalid = true;
+  } else if (typeof layer.refresh === 'function') {
+    layer.refresh();
+  }
   layer.timeString = value;
   if (layer.urlBuilder && typeof layer.urlBuilder === 'object') layer.urlBuilder.timeString = value;
   const instant = time instanceof Date ? time : value ? new Date(value) : null;
   layer.time = instant && !Number.isNaN(instant.getTime()) ? instant : null;
-  if (typeof layer.refresh === 'function') layer.refresh();
   return value;
 }

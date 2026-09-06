@@ -67,10 +67,11 @@ for (const [framework, path] of [
       const errors = collectErrors(page);
       await page.goto(path);
       await expect(page.locator('canvas')).toHaveCount(1);
-      await expect(page.locator('.wwui-layer-switcher input[type=checkbox]')).toHaveCount(7);
+      await expect(page.locator('.wwui-layer-switcher input[type=checkbox]')).toHaveCount(8);
       await expect(page.locator('.wwui-layer-switcher')).toContainText('Blue Marble & Landsat');
       await expect(page.locator('.wwui-layer-switcher')).toContainText('Airports');
       await expect(page.locator('.wwui-layer-switcher')).toContainText('MODIS Terra (daily)');
+      await expect(page.locator('.wwui-layer-switcher')).toContainText('Stations (5,000 clustered)');
       expect(await page.evaluate(() => Boolean(document.querySelector('canvas')?.getContext('webgl')))).toBe(true);
       await expect(page.getByLabel('Go to location')).toBeVisible();
       await expect(page.getByRole('button', { name: 'Zoom in' })).toBeVisible();
@@ -83,6 +84,16 @@ for (const [framework, path] of [
       await expect(page.getByRole('link', { name: 'worldwind-ui' })).toHaveAttribute('href', 'https://github.com/qwertymuzaffar/worldwind-ui');
       await expect(page.getByAltText('Airports legend')).toBeVisible();
       await expect(page.locator('.wwui-time__label')).toHaveText(/^\d{4}-\d{2}-\d{2}$/);
+      await expect(page.getByRole('button', { name: 'Fullscreen' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Point', exact: true })).toBeVisible();
+
+      // 5,000 stations collapse into far fewer markers at this zoom.
+      const markers = await page.evaluate(() => {
+        const layer = window.worldwindDemo!.globe.layers.find('Stations (5,000 clustered)') as { renderables: unknown[] } | undefined;
+        return layer?.renderables.length ?? -1;
+      });
+      expect(markers).toBeGreaterThan(0);
+      expect(markers).toBeLessThan(500);
       expect(errors).toEqual([]);
     });
 
@@ -99,6 +110,44 @@ for (const [framework, path] of [
       await expect(popup).toContainText(/New York|JFK/);
       await page.getByRole('button', { name: 'Close' }).click();
       await expect(popup).toHaveCount(0);
+
+      // Draw a polygon on three spots with nothing but terrain under them (a click on a cluster marker
+      // would fly the camera), finish with Enter, then drag one vertex by its handle.
+      const spots = await page.evaluate(() => {
+        const globe = window.worldwindDemo!.globe;
+        const free: Array<[number, number]> = [];
+        for (let y = 340; y <= 500 && free.length < 3; y += 40) {
+          for (let x = 560; x <= 760 && free.length < 3; x += 40) {
+            if (globe.pick(x, y).items.every((item) => item.isTerrain)) free.push([x, y]);
+          }
+        }
+        return free;
+      });
+      expect(spots).toHaveLength(3);
+      await page.getByRole('button', { name: 'Polygon', exact: true }).click();
+      for (const [x, y] of spots) await page.mouse.click(x, y);
+      await expect(page.locator('.wwui-draw')).toContainText('Draft3');
+      await page.locator('canvas').focus();
+      await page.keyboard.press('Enter');
+      await expect(page.locator('.wwui-draw')).toContainText('Features1');
+      const vertices = () =>
+        page.evaluate(() => {
+          const layer = window.worldwindDemo!.globe.layers.find('Drawings') as unknown as { renderables: Array<{ boundaries?: Array<{ latitude: number; longitude: number }> }> };
+          return layer.renderables[0]!.boundaries!.map((p) => [p.latitude, p.longitude]);
+        });
+      const before = await vertices();
+      const handle = await page.evaluate(([lat, lon]) => window.worldwindDemo!.globe.toScreen({ latitude: lat!, longitude: lon! }), before[1]!);
+      expect(handle?.visible).toBe(true);
+      await page.mouse.move(handle!.x, handle!.y);
+      await page.mouse.down();
+      await page.mouse.move(handle!.x + 60, handle!.y - 50, { steps: 6 });
+      await page.mouse.up();
+      const after = await vertices();
+      expect(after[1]).not.toEqual(before[1]);
+      expect(after[0]).toEqual(before[0]);
+      await page.getByRole('button', { name: 'Polygon', exact: true }).click();
+      await page.getByRole('button', { name: 'Delete selection' }).click();
+      await expect(page.locator('.wwui-draw')).toContainText('Features0');
 
       await page.mouse.move(640, 400);
       await expect(readout).toContainText('Lat/Lon');
@@ -141,6 +190,10 @@ for (const [framework, path] of [
       await expect(timeLabel).not.toHaveText(dayBefore!);
       const day = await timeLabel.textContent();
       expect(await page.evaluate(() => window.worldwindDemo!.globe.layers.find('MODIS Terra (daily)')?.timeString)).toBe(day);
+
+      // The screenshot button hands the browser a PNG.
+      const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save screenshot' }).click()]);
+      expect(download.suggestedFilename()).toMatch(/^globe-.*\.png$/);
 
       // Switching the airports off removes their legend; the credits stay.
       const airports = page.getByLabel('Airports', { exact: true });

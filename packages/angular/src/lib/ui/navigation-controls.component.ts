@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import type { CameraTarget } from 'worldwind-kit';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  downloadScreenshot,
+  isFullscreen,
+  onFullscreenChange,
+  toggleFullscreen,
+  type CameraTarget,
+  type DownloadScreenshotOptions,
+} from 'worldwind-kit';
 import { WwGlobeComponent } from '../globe.component';
 import { WwPanelComponent, type WwPanelPosition } from './panel.component';
 
@@ -21,6 +28,22 @@ import { WwPanelComponent, type WwPanelPosition } from './panel.component';
       @if (home(); as target) {
         <button type="button" class="wwui-button" title="Home" aria-label="Home" (click)="goHome(target)">⌂</button>
       }
+      @if (fullscreen()) {
+        <button
+          type="button"
+          class="wwui-button"
+          [class.wwui-button--active]="full()"
+          [title]="full() ? 'Exit fullscreen' : 'Fullscreen'"
+          [attr.aria-label]="full() ? 'Exit fullscreen' : 'Fullscreen'"
+          [attr.aria-pressed]="full()"
+          (click)="toggleFull()"
+        >
+          ⛶
+        </button>
+      }
+      @if (screenshot()) {
+        <button type="button" class="wwui-button" title="Save screenshot" aria-label="Save screenshot" (click)="saveScreenshot()">📷</button>
+      }
     </ww-panel>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +62,33 @@ export class WwNavigationControlsComponent {
   readonly home = input<CameraTarget | false>({ latitude: 0, longitude: 0, range: 2e7, heading: 0, tilt: 0 });
   /** Animation length for the home button, in ms. */
   readonly animate = input(1500);
+  /** Add a fullscreen toggle for the globe. */
+  readonly fullscreen = input(false);
+  /** Add a button that saves the globe as an image; an object sets the file type and name. */
+  readonly screenshot = input<boolean | DownloadScreenshotOptions>(false);
+
+  /** Whether the globe is fullscreen (tracked while `fullscreen` is on). */
+  readonly full = signal(false);
+
+  constructor() {
+    effect((onCleanup) => {
+      const globe = this.globeHost.globe();
+      if (!globe || !this.fullscreen()) return;
+      this.full.set(isFullscreen(globe));
+      onCleanup(onFullscreenChange(globe, (state) => this.full.set(state)));
+    });
+  }
+
+  protected toggleFull(): void {
+    const globe = this.globeHost.globe();
+    if (globe) void toggleFullscreen(globe).catch(() => {});
+  }
+
+  protected saveScreenshot(): void {
+    const globe = this.globeHost.globe();
+    const options = this.screenshot();
+    if (globe) void downloadScreenshot(globe, typeof options === 'object' ? options : {}).catch(() => {});
+  }
 
   protected readonly toolbarClass = computed(
     () => `wwui-toolbar${this.orientation() === 'horizontal' ? ' wwui-toolbar--horizontal' : ''}`,

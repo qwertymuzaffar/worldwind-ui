@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useSyncExternalStore, type DependencyList } from 'react';
 import {
+  DrawTool,
   MeasureTool,
   applyLayerOptions,
   collectAttributions,
@@ -8,6 +9,11 @@ import {
   type CollectLegendsOptions,
   type CameraController,
   type CameraState,
+  type DrawFeatureCollection,
+  type DrawFeatureInput,
+  type DrawMode,
+  type DrawState,
+  type DrawToolOptions,
   type GlobeController,
   type LayerAttribution,
   type LayerOptions,
@@ -300,4 +306,78 @@ export function useLegends(options: CollectLegendsOptions = {}): LegendEntry[] {
   const layers = useLayers();
   const { enabledOnly, topFirst } = options;
   return useMemo(() => collectLegends(layers, { enabledOnly, topFirst }), [layers, enabledOnly, topFirst]);
+}
+
+/** @category Hooks */
+export interface UseDrawToolResult {
+  state: DrawState;
+  /** The tool, or null until the globe effect has created it. */
+  tool: DrawTool | null;
+  start: (mode: DrawMode) => void;
+  stop: () => void;
+  finish: () => void;
+  cancel: () => void;
+  undo: () => void;
+  clear: () => void;
+  select: (id: string | null, vertex?: number | null) => void;
+  remove: (id: string) => void;
+  removeSelected: () => void;
+  add: (feature: DrawFeatureInput) => void;
+  toGeoJson: () => DrawFeatureCollection;
+  load: (collection: DrawFeatureCollection, options?: { replace?: boolean }) => void;
+}
+
+const IDLE_DRAW: DrawState = { mode: null, draft: [], features: [], selectedId: null, selectedVertex: null, dragging: false };
+const EMPTY_COLLECTION: DrawFeatureCollection = { type: 'FeatureCollection', features: [] };
+
+/** A drawing and editing tool bound to the globe for the component's lifetime.
+ * @example
+ * ```tsx
+ * const { state, start, toGeoJson } = useDrawTool();
+ * return <button onClick={() => start('polygon')}>Draw ({state.features.length})</button>;
+ * ```
+ * @category Hooks
+ */
+export function useDrawTool(options: DrawToolOptions = {}): UseDrawToolResult {
+  const globe = useGlobe();
+  const latest = useLatest(options);
+  const [tool, setTool] = useState<DrawTool | null>(null);
+
+  useEffect(() => {
+    const created = new DrawTool(globe, latest.current);
+    setTool(created);
+    return () => {
+      created.destroy();
+      setTool(null);
+    };
+  }, [globe, latest]);
+
+  const store = useMemo(
+    () => ({
+      subscribe: (notify: () => void) => (tool ? tool.subscribe(() => notify()) : () => {}),
+      getSnapshot: () => (tool ? tool.state : IDLE_DRAW),
+    }),
+    [tool],
+  );
+  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+
+  return useMemo(
+    () => ({
+      state,
+      tool,
+      start: (mode) => tool?.start(mode),
+      stop: () => tool?.stop(),
+      finish: () => void tool?.finish(),
+      cancel: () => tool?.cancel(),
+      undo: () => tool?.undo(),
+      clear: () => tool?.clear(),
+      select: (id, vertex) => tool?.select(id, vertex ?? null),
+      remove: (id) => void tool?.remove(id),
+      removeSelected: () => tool?.removeSelected(),
+      add: (feature) => void tool?.add(feature),
+      toGeoJson: () => tool?.toGeoJson() ?? EMPTY_COLLECTION,
+      load: (collection, loadOptions) => void tool?.load(collection, loadOptions),
+    }),
+    [state, tool],
+  );
 }

@@ -1,6 +1,6 @@
 # Widgets
 
-Every widget renders into a floating panel at an edge of the globe (`position`: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`) and needs the shared stylesheet. React names are shown; the Angular selectors are `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher`, `ww-scale-bar`, `ww-compass`, `ww-attribution`, `ww-legend` and `ww-time-slider`, with the same inputs.
+Every widget renders into a floating panel at an edge of the globe (`position`: `top-left`, `top-right`, `bottom-left`, `bottom-right`, `top-center`, `bottom-center`) and needs the shared stylesheet. React names are shown; the Angular selectors are `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher`, `ww-scale-bar`, `ww-compass`, `ww-attribution`, `ww-legend`, `ww-time-slider` and `ww-draw-tool`, with the same inputs.
 
 <div class="wwui-gallery">
   <figure><img src="/widgets/layer-switcher.png" alt="Layer switcher" width="216" /><figcaption>LayerSwitcher</figcaption></figure>
@@ -15,6 +15,7 @@ Every widget renders into a floating panel at an edge of the globe (`position`: 
   <figure><img src="/widgets/attribution.png" alt="Attribution strip" width="330" /><figcaption>Attribution</figcaption></figure>
   <figure><img src="/widgets/legend.png" alt="Legend" width="180" /><figcaption>Legend</figcaption></figure>
   <figure><img src="/widgets/time-slider.png" alt="Time slider" width="330" /><figcaption>TimeSlider</figcaption></figure>
+  <figure><img src="/widgets/draw-tool.png" alt="Draw tool" width="270" /><figcaption>DrawTool</figcaption></figure>
 </div>
 
 ## LayerSwitcher
@@ -41,6 +42,10 @@ Zoom in and out, reset to north, tilt up and down, and a home button.
 | `home` | whole globe | `CameraTarget`, or `false` to hide |
 | `animate` | `1500` | Home flight in ms |
 | `orientation` | `'vertical'` | Or `'horizontal'` |
+| `fullscreen` | `false` | Adds a fullscreen toggle for the globe and its widgets |
+| `screenshot` | `false` | Adds a button that saves the globe as an image; an object sets `type`, `quality` and `filename` |
+
+The kit offers the same as `toggleFullscreen(globe)`, `captureScreenshot(globe)` and `downloadScreenshot(globe, options)`. Screenshots are taken inside WorldWind's redraw callback, so they work without `preserveDrawingBuffer`.
 
 ## GoToBox
 
@@ -163,3 +168,20 @@ WorldWind only reads `TIME` when a layer is constructed, so the kit's `setLayerT
 ```
 
 The kit's `parseTimeDimension('2024-01-01/2024-01-31/P1D')`, `timeDimensionFromCapabilities(layerCapabilities)` and `resolveTimeDimension(layers, overrides)` give you the same data without the widget.
+
+## DrawTool
+
+Draws points, lines and polygons and edits them afterwards. Pick a shape, click the globe to add vertices, and finish a line or polygon with a double-click, Enter or the Finish button. Click a finished drawing to select it: its vertices get handles you can drag, Delete removes the selected vertex (or the feature once it is at its minimum), Escape deselects. Everything lives in the tool's own layer and round-trips through GeoJSON.
+
+| Prop | Default | Purpose |
+| --- | --- | --- |
+| `onChange` / `(featuresChange)` | | Called with the features whenever they change |
+| `showDownload` | `false` | Button that downloads the drawings as GeoJSON |
+| `editable` | `true` | Allow selecting, dragging and deleting |
+| `finishOnDoubleClick` | `true` | |
+| `keyboard` | `true` | Enter, Escape, Delete and Backspace on the focused canvas |
+| `line`, `polygon`, `selected` | orange | `ShapeStyle` for lines, polygons, and the selection highlight |
+| `pointImage`, `pointScale` | red pushpin | Point features |
+| `handleImage`, `handleScale` | white dot | Vertex handles |
+
+Dragging works because WorldWind's navigator ignores a press whose default was prevented: the tool claims the press when it lands on a handle or a point, and the globe stays put. The hook `useDrawTool()` (React) and the `DrawTool` class (kit) expose `start`, `finish`, `select`, `removeSelected`, `toGeoJson` and `load` without the panel.

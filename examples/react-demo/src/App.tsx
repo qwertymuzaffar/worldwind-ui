@@ -2,9 +2,11 @@ import { useState } from 'react';
 import {
   Attribution,
   Camera,
+  ClusterLayer,
   Compass,
   CoordinatesReadout,
   DAY_MS,
+  DrawTool,
   GeoJsonLayer,
   Globe,
   GoToBox,
@@ -92,6 +94,28 @@ const GIBS = {
   attribution: { text: 'NASA GIBS', url: 'https://www.earthdata.nasa.gov/engage/open-data-services-software/earthdata-developer-portal/gibs-api' },
 };
 
+/** Deterministic pseudo-random points, so the clustered layer looks the same on every load. */
+function samplePoints(count: number, seed: number) {
+  let state = seed >>> 0;
+  const random = () => {
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+  const points: Array<{ latitude: number; longitude: number; name: string }> = [];
+  for (let i = 0; i < count; i += 1) {
+    // Clumped around a few centres so clusters split as you zoom.
+    const centre = Math.floor(random() * 12);
+    const spread = 4 + (centre % 3) * 6;
+    points.push({
+      latitude: Math.max(-80, Math.min(80, ((centre * 47) % 140) - 70 + (random() - 0.5) * spread)),
+      longitude: ((centre * 97) % 360) - 180 + (random() - 0.5) * spread * 2,
+      name: `Station ${i + 1}`,
+    });
+  }
+  return points;
+}
+const SAMPLE_POINTS = samplePoints(5000, 7);
+
 /** The last 30 days up to yesterday (GIBS publishes with about a day of latency). */
 function recentDays(): TimeDimension {
   const now = new Date();
@@ -104,6 +128,7 @@ export function App() {
   const [selected, setSelected] = useState<(typeof CITIES)[number] | null>(null);
   const [lastClick, setLastClick] = useState<PickEvent | null>(null);
   const [popup, setPopup] = useState<PopupState | null>(null);
+  const [selectedStation, setSelectedStation] = useState<string | null>(null);
   const target = selected ?? { latitude: 20, longitude: 10 };
 
   return (
@@ -150,6 +175,8 @@ export function App() {
         {selected ? <SurfaceCircle center={selected} radius={150_000} fill="rgba(56, 189, 248, 0.25)" stroke="#38bdf8" /> : null}
       </RenderableLayer>
 
+      <ClusterLayer items={SAMPLE_POINTS} name="Stations (5,000 clustered)" radius={56} onItemClick={(station) => setSelectedStation(station.name)} />
+
       <GeoJsonLayer
         source={AIRPORTS}
         name="Airports"
@@ -171,11 +198,12 @@ export function App() {
 
       <GoToBox position="top-left" />
       <MeasureTool position="top-left" className="wwui-panel--below-goto" />
+      <DrawTool position="top-left" className="wwui-panel--below-measure" showDownload />
       <LayerSwitcher position="bottom-right" />
-      <NavigationControls position="top-right" home={{ latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 }} />
+      <NavigationControls position="top-right" home={{ latitude: 20, longitude: 10, range: 1.6e7, heading: 0, tilt: 0 }} fullscreen screenshot />
       <CoordinatesReadout position="bottom-left" />
       <ProjectionSwitcher position="top-right" className="wwui-panel--beside-nav" />
-      <Compass position="top-right" className="wwui-panel--below-nav" />
+      <Compass position="top-right" className="wwui-panel--below-projection" />
       <TimeSlider position="bottom-center" className="wwui-panel--above-scale" />
       <Legend position="bottom-left" className="wwui-panel--above-status" />
       <ScaleBar position="bottom-center" className="wwui-panel--above-attribution" />
@@ -183,7 +211,7 @@ export function App() {
 
       <Panel position="bottom-left" className="wwui-panel--above-coords">
         <p className="wwui-goto__status" style={{ margin: 0 }}>
-          {selected ? `Selected: ${selected.name}` : 'Click a pin to fly there'}
+          {selected ? `Selected: ${selected.name}` : selectedStation ? `Selected: ${selectedStation}` : 'Click a pin to fly there'}
           {lastClick?.position ? ` · last click ${formatLatLon(lastClick.position, { precision: 2 })}` : ''}
         </p>
       </Panel>

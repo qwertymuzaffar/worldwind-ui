@@ -40,6 +40,8 @@ export { WwCompassComponent } from './lib/ui/compass.component';
 export { WwAttributionComponent } from './lib/ui/attribution.component';
 export { WwLegendComponent } from './lib/ui/legend.component';
 export { WwTimeSliderComponent } from './lib/ui/time-slider.component';
+export { WwDrawToolComponent } from './lib/ui/draw-tool.component';
+export { WwClusterLayerComponent } from './lib/cluster-layer.component';
 
 import { WwCameraDirective } from './lib/camera.directive';
 import { WwGlobeComponent } from './lib/globe.component';
@@ -74,6 +76,8 @@ import { WwCompassComponent } from './lib/ui/compass.component';
 import { WwAttributionComponent } from './lib/ui/attribution.component';
 import { WwLegendComponent } from './lib/ui/legend.component';
 import { WwTimeSliderComponent } from './lib/ui/time-slider.component';
+import { WwDrawToolComponent } from './lib/ui/draw-tool.component';
+import { WwClusterLayerComponent } from './lib/cluster-layer.component';
 
 /** Every component and directive, for `imports: [...WORLDWIND_COMPONENTS]`.
  * @category Globe
@@ -108,4 +112,6 @@ export const WORLDWIND_COMPONENTS = [
   WwAttributionComponent,
   WwLegendComponent,
   WwTimeSliderComponent,
+  WwDrawToolComponent,
+  WwClusterLayerComponent,
 ] as const;

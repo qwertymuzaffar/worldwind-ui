@@ -51,6 +51,9 @@ from a CDN by default; pass `assetBaseUrl` to self-host them.
 | `createWmtsLayerFromCapabilities`, `createWmsLayerFromCapabilities`, `fetchCapabilities` | OGC layers configured from a GetCapabilities document |
 | `loadGeoJson`, `loadKml` | GeoJSON (URL, string or object) with per-feature styling, and KML/KMZ, into a renderable layer |
 | `MeasureTool`, `formatArea` | Click-to-measure distances and areas in the tool's own layer |
+| `DrawTool` | Draw points, lines and polygons; select, drag and delete; GeoJSON in and out |
+| `ClusterLayer`, `clusterItems` | Thousands of points as count markers that split on zoom |
+| `captureScreenshot`, `downloadScreenshot`, `toggleFullscreen` | Save the globe as an image; fullscreen for the globe and its widgets |
 | `trackScaleBar`, `computeScaleBar` | Map scale at the view centre, as round distances in metric, imperial or nautical units |
 | `layerAttribution`, `collectAttributions`, `layerLegend`, `collectLegends` | Credits and legend images per layer: defaults for built-in layers, WMS/WMTS capabilities, or set by hand |
 | `parseTimeDimension`, `resolveTimeDimension`, `setLayerTime` | Time dimensions from capabilities and changing a WMS/WMTS layer's `TIME` after creation |

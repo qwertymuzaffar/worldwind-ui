@@ -59,9 +59,13 @@ Inside a `<RenderableLayer>`: `<Placemark>`, `<Path>`, `<Polygon>`, `<SurfacePol
 
 `<Camera latitude longitude range heading tilt animate>` moves the globe whenever its props change. `useCamera()` returns the state plus `goTo`, `zoomIn`, `zoomOut`, `rotateBy`, `tiltBy` and `resetNorth`.
 
+## Clustering
+
+`<ClusterLayer items={points} name="Stations" radius={56} />` draws thousands of points as count markers that split as you zoom in. Items are anything with `latitude` and `longitude` (or pass `getPosition`); `renderItem` and `renderCluster` replace the default markers, and `onClusterClick` / `onItemClick` receive the pick. Clicking a cluster flies closer unless `zoomOnClick` is false.
+
 ## Widgets
 
-`<LayerSwitcher>`, `<NavigationControls>`, `<GoToBox>`, `<CoordinatesReadout>`, `<MeasureTool>`, `<ProjectionSwitcher>`, `<ScaleBar>`, `<Compass>`, `<Attribution>`, `<Legend>` and `<TimeSlider>` each take a `position` and render into a `<Panel>`. They need `react-worldwind/styles.css`, and can be themed through the `--wwui-*` custom properties.
+`<LayerSwitcher>`, `<NavigationControls>`, `<GoToBox>`, `<CoordinatesReadout>`, `<MeasureTool>`, `<DrawTool>`, `<ProjectionSwitcher>`, `<ScaleBar>`, `<Compass>`, `<Attribution>`, `<Legend>` and `<TimeSlider>` each take a `position` and render into a `<Panel>`. They need `react-worldwind/styles.css`, and can be themed through the `--wwui-*` custom properties.
 
 ## Popups
 

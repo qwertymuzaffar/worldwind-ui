@@ -57,6 +57,8 @@ export function Map() {
 | `<GoToBox>` | `lat, lon` or place-name search (Nominatim). |
 | `<CoordinatesReadout>` | Position under the mouse and camera range. |
 | `<MeasureTool>` | Click-to-measure distances and areas. |
+| `<DrawTool>` | Draw and edit points, lines and polygons; GeoJSON export. |
+| `<ClusterLayer>` | Thousands of points as count markers that split on zoom. |
 | `<ProjectionSwitcher>` | Buttons for the 3D globe and the flat projections. |
 | `<ScaleBar>` | Round ground distance at the current zoom; metric, imperial or nautical. |
 | `<Compass>` | Rose that turns with the heading; click to face north. |

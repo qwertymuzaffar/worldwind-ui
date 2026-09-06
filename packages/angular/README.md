@@ -75,6 +75,7 @@ export class MapComponent {
 | `ww-panel` | A floating corner card (`position`, `heading`). |
 | `ww-layer-switcher`, `ww-navigation-controls`, `ww-goto-box`, `ww-coordinates`, `ww-measure-tool`, `ww-projection-switcher` | Ready-made widgets. |
 | `ww-scale-bar`, `ww-compass`, `ww-attribution`, `ww-legend`, `ww-time-slider` | Scale, heading, credits, legends and a time dimension slider. |
+| `ww-draw-tool`, `ww-cluster-layer` | Draw and edit shapes with GeoJSON export; many points as count markers. |
 
 \* Bing layers need `bingMapsKey` in `options`.
 

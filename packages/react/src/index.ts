@@ -23,11 +23,13 @@ export {
   useLayer,
   useLayers,
   useAttributions,
+  useDrawTool,
   useLegends,
   useMeasureTool,
   useProjection,
   useScaleBar,
   type UseCameraResult,
+  type UseDrawToolResult,
   type UseLayerOptions,
   type UseMeasureToolResult,
 } from './hooks';
@@ -79,3 +81,5 @@ export { Compass, type CompassProps } from './ui/Compass';
 export { Attribution, type AttributionProps } from './ui/Attribution';
 export { Legend, type LegendProps } from './ui/Legend';
 export { TimeSlider, type TimeSliderProps } from './ui/TimeSlider';
+export { DrawTool, type DrawToolProps } from './ui/DrawTool';
+export { ClusterLayer, type ClusterLayerProps } from './ClusterLayer';

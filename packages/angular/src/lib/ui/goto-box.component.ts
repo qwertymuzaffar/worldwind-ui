@@ -62,7 +62,7 @@ export class WwGoToBoxComponent {
 
   readonly position = input<WwPanelPosition>('top-left');
   readonly heading = input<string | null>('Go to');
-  readonly placeholder = input('Place name or "lat, lon"');
+  readonly placeholder = input('City or "lat, lon"');
   /** Flight duration in ms. */
   readonly duration = input(2000);
   /** Range for typed coordinates and results without a bounding box. Default 200 km. */

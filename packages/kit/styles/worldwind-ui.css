@@ -416,6 +416,13 @@
   font-size: 12px;
 }
 
+/* Draw tool */
+.wwui-draw {
+  display: grid;
+  gap: 8px;
+  min-width: 250px;
+}
+
 /* Small screens: keep panels inside the viewport and let long widgets scroll. */
 @media (max-width: 720px) {
   .wwui-panel {
@@ -442,6 +449,10 @@
   .wwui-time {
     min-width: 0;
     width: calc(100vw - 2 * var(--wwui-gap));
+  }
+
+  .wwui-draw {
+    min-width: 0;
   }
 
   .wwui-legend__image {

@@ -248,6 +248,15 @@ export class FakeWmsLayer extends FakeLayer {
   /** Like WorldWind's WmsUrlBuilder, holds the TIME value used in requests. */
   urlBuilder: { timeString: string | null };
   cachePath: string;
+  /** Tile bookkeeping as in WorldWind's TiledImageLayer, so tests can see a tile set being reset. */
+  topLevelTiles: unknown[] = [{ fake: 'tile' }];
+  tileCache = {
+    cleared: 0,
+    clear() {
+      this.cleared += 1;
+    },
+  };
+  currentTilesInvalid = false;
 
   constructor(
     public config: any,
