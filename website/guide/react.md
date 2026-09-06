@@ -17,7 +17,7 @@
 </Globe>
 ```
 
-Creation props (`layers`, `view`, `elevation`, `assetBaseUrl`, `bingMapsKey`, `pixelScale`, `deepPicking`, `logLevel`) apply once. `projection` and the event handlers are reactive. `onReady` gives you the `GlobeController`; `onError` reports a failed WorldWind load.
+Creation props (`layers`, `view`, `elevation`, `assetBaseUrl`, `bingMapsKey`, `pixelScale`, `deepPicking`, `logLevel`, `keyboard`) apply once. `projection` and the event handlers are reactive. `onReady` gives you the `GlobeController`; `onError` reports a failed WorldWind load.
 
 ## Layers
 

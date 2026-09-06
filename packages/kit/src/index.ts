@@ -10,6 +10,7 @@ export * from './geo';
 export * from './geocode';
 export * from './geojson';
 export * from './globe';
+export * from './keyboard';
 export * from './kml';
 export * from './layers';
 export * from './measure';

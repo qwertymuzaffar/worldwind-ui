@@ -34,6 +34,8 @@ WorldWind's own API is imperative, untyped and has no teardown. These packages a
 - **Shared event routing.** One gesture recognizer per globe, not one per placemark.
 - **Testability.** `worldwind-kit/testing` ships a fake WorldWind so component tests run in
   jsdom without WebGL.
+- **Keyboard navigation.** The canvas is focusable; arrows pan, plus and minus zoom, Shift with
+  the arrows rotates and tilts.
 
 ## Quick start (React)
 

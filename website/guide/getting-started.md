@@ -61,6 +61,10 @@ globe.on('click', (event) => console.log(event.position));
 
 The globe fills its host element, so give that element a height. In Angular, add `@import 'ngx-worldwind/styles.css';` to your global styles for the widgets.
 
+## Keyboard
+
+The globe's canvas is focusable: arrow keys pan, `+` and `-` zoom, Shift with the arrows rotates and tilts, Home resets the orientation. Pass `keyboard: false` in the options to turn it off.
+
 ## Assets
 
 WorldWind loads images (pushpins, compass, Blue Marble) relative to its own script location, which bundlers break. The libraries point it at a CDN copy matching the installed version by default; pass `assetBaseUrl` to self-host them.

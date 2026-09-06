@@ -11,6 +11,7 @@ import {
 } from './layers';
 import { PickDispatcher, pickAt, type PickEventType, type PickHandler, type PickOptions, type PickResult } from './picking';
 import type { LatLonAlt } from './geo';
+import { attachKeyboardNavigation, type KeyboardNavigationOptions } from './keyboard';
 import { toScreen, trackScreenPosition, type ScreenPoint } from './screen';
 import { loadWorldWind, type LoadWorldWindOptions } from './worldwind';
 import type { WWLayer, WWRenderableLayer, WWWorldWindow, WorldWindStatic } from './worldwind-types';
@@ -56,6 +57,11 @@ export interface GlobeOptions {
   view?: Partial<CameraState>;
   /** Built-in layers to add straight away, bottom to top. */
   layers?: BuiltInLayerKind[];
+  /**
+   * Keyboard navigation on the canvas (arrows pan, plus and minus zoom, Shift+arrows rotate and
+   * tilt, Home resets). On by default; `false` disables it, an object tunes it.
+   */
+  keyboard?: boolean | KeyboardNavigationOptions;
 }
 
 const LOG_LEVELS: Record<LogLevel, (worldWind: WorldWindStatic) => number> = {
@@ -140,6 +146,9 @@ export class GlobeController {
     if (options.projection && options.projection !== '3d') this.setProjection(options.projection);
     for (const kind of options.layers ?? []) this.addLayer(kind);
     if (options.view) this.camera.set(options.view, { redraw: false });
+    if (options.keyboard !== false) {
+      this.track(attachKeyboardNavigation(this, typeof options.keyboard === 'object' ? options.keyboard : {}));
+    }
     this.wwd.redraw();
   }
 

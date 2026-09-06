@@ -24,6 +24,10 @@ A pick asks WorldWind what lies under a screen point: the terrain position plus 
 
 WorldWind lets only the earliest-registered recognizer claim a gesture, so two independent click recognizers on a window never both fire. `GlobeController.on()` therefore keeps one recognizer set per event type and fans events out to every subscriber. On top of that, `ShapeEventRegistry` routes picks to per-shape handlers, so a hundred placemarks with `onClick` still share one recognizer.
 
+## Keyboard and accessibility
+
+The canvas is focusable and announced as an application. Arrow keys pan relative to the current heading, `+` and `-` zoom, Shift with the arrows rotates and tilts, PageUp and PageDown tilt, and Home resets the orientation. This is on by default; pass `keyboard: false` in the globe options to opt out, or an object (`panFraction`, `zoomFactor`, `rotateStep`, `tiltStep`, `label`) to tune it. `handleNavigationKey()` is exported for custom bindings. Widgets use native buttons and inputs with labels, so they work with screen readers and the keyboard as they are.
+
 ## Screen positions
 
 `globe.toScreen(position)` projects a geographic position to canvas pixels using the last rendered frame, and reports whether the point is inside the viewport and in front of the globe. `globe.trackPosition()` re-projects after every frame in which the point moved; the popup components are a thin layer over it.

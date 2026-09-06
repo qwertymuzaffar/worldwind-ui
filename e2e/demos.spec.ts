@@ -88,6 +88,11 @@ for (const [framework, path] of [
       await page.getByRole('button', { name: 'Zoom in' }).click();
       await expect(readout).toContainText('100 km');
 
+      // Keyboard navigation on the focused canvas: minus zooms out by 1.5x.
+      await page.locator('canvas').focus();
+      await page.keyboard.press('-');
+      await expect(readout).toContainText('150 km');
+
       const mercator = page.getByRole('button', { name: 'Mercator', exact: true });
       await mercator.click();
       await expect(mercator).toHaveAttribute('aria-pressed', 'true');
