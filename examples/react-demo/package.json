@@ -13,7 +13,7 @@
     "@nasaworldwind/worldwind": "^0.11.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-worldwind": "^0.1.2"
+    "react-worldwind": "^0.2.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
@@ -21,6 +21,6 @@
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "~6.0.0",
     "vite": "^8.2.2",
-    "worldwind-kit": "^0.1.2"
+    "worldwind-kit": "^0.2.0"
   }
 }
