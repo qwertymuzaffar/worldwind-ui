@@ -24,6 +24,45 @@ measure.start();
 globe.destroy();
 ```
 
+## Vue
+
+The kit has no framework dependency, so a Vue component is a `ref` on the host element and one effect:
+
+```vue
+<script setup lang="ts">
+import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { GlobeController } from 'worldwind-kit';
+
+const host = ref<HTMLElement | null>(null);
+let globe: GlobeController | null = null;
+
+onMounted(async () => {
+  globe = await GlobeController.create(host.value!, { layers: ['blue-marble-landsat', 'atmosphere'] });
+  globe.on('click', (event) => console.log(event.position));
+});
+onBeforeUnmount(() => globe?.destroy());
+</script>
+
+<template>
+  <div ref="host" style="height: 480px"></div>
+</template>
+```
+
+## Vanilla JavaScript
+
+```html
+<div id="map" style="height: 480px"></div>
+<script type="module">
+  import { GlobeController } from 'https://esm.sh/worldwind-kit';
+
+  const globe = await GlobeController.create(document.getElementById('map'), {
+    layers: ['blue-marble-landsat', 'atmosphere', 'compass'],
+  });
+</script>
+```
+
+(`esm.sh` resolves the WorldWind peer dependency for you; with a bundler, install `@nasaworldwind/worldwind` alongside the kit.)
+
 ## What is inside
 
 - **`GlobeController`**: creates a `WorldWindow` on a host element and owns `layers`, `camera` and picking. `destroy()` stops the render loop, neuters the window-level listeners WorldWind never removes, drops the layers and releases the WebGL context.

@@ -1,0 +1,55 @@
+/* A bigger hero screenshot: the default 320px box makes the globe unreadable. */
+@media (min-width: 960px) {
+  .VPHero .image-container {
+    width: 560px;
+    height: 360px;
+  }
+  .VPHero .image-src {
+    max-width: 560px;
+    max-height: 360px;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  }
+  .VPHero .image-bg {
+    width: 420px;
+    height: 420px;
+  }
+}
+
+.VPHero .image-src {
+  border-radius: 12px;
+}
+
+/* Badges row on the home page */
+.wwui-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 24px;
+}
+.wwui-badges img {
+  height: 20px;
+}
+
+/* Widget gallery */
+.wwui-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin: 16px 0 28px;
+}
+.wwui-gallery figure {
+  margin: 0;
+}
+.wwui-gallery img {
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--vp-c-divider);
+  background: #000;
+}
+.wwui-gallery figcaption {
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+  margin-top: 6px;
+}
