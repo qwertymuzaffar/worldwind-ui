@@ -1,6 +1,6 @@
 {
   "name": "worldwind-kit",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Framework-agnostic TypeScript toolkit for NASA WorldWind: typed globe controller, layers, camera, picking, shapes and a test double",
   "keywords": [
     "worldwind",
