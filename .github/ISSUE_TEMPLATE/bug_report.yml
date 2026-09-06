@@ -1,0 +1,41 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - worldwind-kit
+        - react-worldwind
+        - ngx-worldwind
+        - docs site or demos
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The package version, and the WorldWind version if it is not 0.11.1
+      placeholder: 0.4.0
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+      description: What you did, what you expected, and what happened instead. Console errors help.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: A snippet, a StackBlitz, or steps in one of the live demos
+      render: tsx
+  - type: input
+    id: env
+    attributes:
+      label: Browser and bundler
+      placeholder: Chrome 130 on macOS, Vite 8

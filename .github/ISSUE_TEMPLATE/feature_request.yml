@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a widget, a layer type, or an API
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The use case, not the solution. What does your app need to show or let users do?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: If you have an API or a widget in mind, sketch it here. Links to how other globe or map libraries do it are welcome.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Where should it live
+      multiple: true
+      options:
+        - worldwind-kit (framework-agnostic)
+        - react-worldwind
+        - ngx-worldwind
+        - not sure

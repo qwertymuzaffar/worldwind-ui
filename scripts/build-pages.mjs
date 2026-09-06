@@ -1,7 +1,7 @@
 // Builds both demo apps for GitHub Pages and assembles the site in _site/.
 // PAGES_BASE is the path the site is served from (default: /worldwind-ui/ for this repository).
 import { execSync } from 'node:child_process';
-import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
@@ -22,5 +22,7 @@ cpSync(resolve(root, 'website/.vitepress/dist'), site, { recursive: true });
 cpSync(resolve(root, 'examples/react-demo/dist'), resolve(site, 'react'), { recursive: true });
 cpSync(resolve(root, 'examples/angular-demo/dist/browser'), resolve(site, 'angular'), { recursive: true });
 cpSync(resolve(root, 'docs/screenshot.jpg'), resolve(site, 'screenshot.jpg'));
+// The coverage report and badge, when `npm run test:coverage` ran before this script.
+if (existsSync(resolve(root, 'coverage/badge.json'))) cpSync(resolve(root, 'coverage'), resolve(site, 'coverage'), { recursive: true });
 writeFileSync(resolve(site, '.nojekyll'), '');
 console.log(`\nSite assembled in ${site} for base ${base}`);

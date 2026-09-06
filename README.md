@@ -1,6 +1,9 @@
 # worldwind-ui
 
 [![CI](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/ci.yml/badge.svg)](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/codeql.yml/badge.svg)](https://github.com/qwertymuzaffar/worldwind-ui/actions/workflows/codeql.yml)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fqwertymuzaffar.github.io%2Fworldwind-ui%2Fcoverage%2Fbadge.json)](https://qwertymuzaffar.github.io/worldwind-ui/coverage/)
+[![npm](https://img.shields.io/npm/v/worldwind-kit?label=npm)](https://www.npmjs.com/package/worldwind-kit)
 
 UI libraries for [NASA WorldWind](https://worldwind.arc.nasa.gov/web/), the open-source WebGL
 virtual globe. One framework-agnostic core, thin idiomatic adapters per framework.
@@ -156,3 +159,8 @@ is NASA's Apache-2.0 library and is a peer dependency, not bundled.
 ## License
 
 MIT
+
+## Contributing
+
+Bug reports and pull requests are welcome; [CONTRIBUTING.md](CONTRIBUTING.md) has the setup, the
+checks and the conventions, and [SECURITY.md](SECURITY.md) explains how to report a vulnerability.

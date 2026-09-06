@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and live demos
+    url: https://qwertymuzaffar.github.io/worldwind-ui/
+    about: Guides, the API reference, and the React and Angular demos
+  - name: NASA WebWorldWind
+    url: https://github.com/NASAWorldWind/WebWorldWind/issues
+    about: Problems in WorldWind itself (rendering, layers, picking) belong upstream
