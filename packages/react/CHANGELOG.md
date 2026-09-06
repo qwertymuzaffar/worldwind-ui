@@ -1,5 +1,18 @@
 # react-worldwind
 
+## 0.3.0
+
+### Minor Changes
+
+- f91bb5a: Keyboard navigation on the globe, on by default: the canvas is focusable and announced as an application; arrow keys pan relative to the heading, `+` and `-` zoom, Shift with the arrows rotates and tilts, PageUp/PageDown tilt, Home resets the orientation. Configure or disable it with the `keyboard` globe option; `handleNavigationKey` is exported for custom bindings.
+- d5ec877: Add popups anchored to geographic positions: `globe.toScreen(position)` and `globe.trackPosition(position, listener)` in the kit, `<Popup>` in React and `<ww-popup>` in Angular, following the globe every frame and hiding when the point is behind it.
+
+### Patch Changes
+
+- Updated dependencies [f91bb5a]
+- Updated dependencies [d5ec877]
+  - worldwind-kit@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
