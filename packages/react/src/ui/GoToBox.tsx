@@ -46,9 +46,14 @@ export function GoToBox({
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const request = useRef(0);
 
+  const show = (found: GeocodeResult[], next: Status) => {
+    setResults(found);
+    setStatus(next);
+  };
+  const reset = (next: Status) => show([], next);
+
   const navigate = (target: CameraTarget, result?: GeocodeResult) => {
-    setResults([]);
-    setStatus({ kind: 'idle' });
+    reset({ kind: 'idle' });
     onNavigate?.(target, result);
     void globe.camera.goTo(target, { duration });
   };
@@ -78,18 +83,15 @@ export function GoToBox({
       const found = await geocode(query, geocoding);
       if (id !== request.current) return;
       if (found.length === 0) {
-        setResults([]);
-        setStatus({ kind: 'empty' });
+        reset({ kind: 'empty' });
       } else if (found.length === 1) {
         choose(found[0]!);
       } else {
-        setResults(found);
-        setStatus({ kind: 'idle' });
+        show(found, { kind: 'idle' });
       }
     } catch (error) {
       if (id !== request.current) return;
-      setResults([]);
-      setStatus({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
+      reset({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
     }
   };
 

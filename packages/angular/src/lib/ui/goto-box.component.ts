@@ -97,18 +97,15 @@ export class WwGoToBoxComponent {
       const found = await geocode(query, geocoding);
       if (id !== this.request) return;
       if (found.length === 0) {
-        this.results.set([]);
-        this.status.set({ kind: 'empty' });
+        this.reset({ kind: 'empty' });
       } else if (found.length === 1) {
         this.choose(found[0]!);
       } else {
-        this.results.set(found);
-        this.status.set({ kind: 'idle' });
+        this.show(found, { kind: 'idle' });
       }
     } catch (error) {
       if (id !== this.request) return;
-      this.results.set([]);
-      this.status.set({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
+      this.reset({ kind: 'error', message: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -123,9 +120,17 @@ export class WwGoToBoxComponent {
     );
   }
 
+  private show(results: GeocodeResult[], status: Status): void {
+    this.results.set(results);
+    this.status.set(status);
+  }
+
+  private reset(status: Status): void {
+    this.show([], status);
+  }
+
   private navigate(target: CameraTarget, result?: GeocodeResult): void {
-    this.results.set([]);
-    this.status.set({ kind: 'idle' });
+    this.reset({ kind: 'idle' });
     this.navigated.emit(result ? { target, result } : { target });
     void this.globeHost.globe()?.camera.goTo(target, { duration: this.duration() });
   }
