@@ -25,7 +25,13 @@ import {
   type SurfaceCircleOptions,
   type SurfacePolygonOptions,
   type SurfacePolylineOptions,
+  type WWGeographicText,
+  type WWPath,
+  type WWPolygon,
   type WWRenderable,
+  type WWSurfaceCircle,
+  type WWSurfacePolygon,
+  type WWSurfacePolyline,
   type WorldWindStatic,
 } from 'worldwind-kit';
 import { useGlobe, useGlobeContext, useRenderableLayer } from './context';
@@ -135,6 +141,28 @@ export function useRenderable<T extends WWRenderable, O>(
   return renderable;
 }
 
+/** A shape component's props without the event handlers: what its `create` and `update` take. */
+type ShapeOptions<P extends ShapeEventProps> = Omit<P, keyof ShapeEventProps>;
+
+/**
+ * Builds a shape component from a kit create/update pair: one renderable kept in the enclosing
+ * `<RenderableLayer>`, options applied in place, and the shared event props wired up.
+ */
+function defineShape<P extends ShapeEventProps, T extends WWRenderable & { highlighted?: boolean }>(
+  displayName: string,
+  create: (worldWind: WorldWindStatic, options: ShapeOptions<P>) => T,
+  update: (worldWind: WorldWindStatic, renderable: T, options: Partial<ShapeOptions<P>>) => void,
+): (props: P) => null {
+  function Shape(props: P) {
+    const [events, options] = splitShapeProps(props);
+    const shape = useRenderable(create, update, options);
+    useShapeEvents(shape, events);
+    return null;
+  }
+  Shape.displayName = displayName;
+  return Shape;
+}
+
 // Components --------------------------------------------------------------------------------------
 
 /** @category Shapes */
@@ -166,64 +194,54 @@ export function Placemark(props: PlacemarkProps) {
 export type PathProps = PathOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function Path(props: PathProps) {
-  const [events, options] = splitShapeProps(props);
-  const path = useRenderable(createPath, updatePath, options);
-  useShapeEvents(path, events);
-  return null;
-}
+export const Path = defineShape<PathProps, WWPath>('Path', createPath, updatePath);
 
 /** @category Shapes */
 export type PolygonProps = PolygonOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function Polygon(props: PolygonProps) {
-  const [events, options] = splitShapeProps(props);
-  const polygon = useRenderable(createPolygon, updatePolygon, options);
-  useShapeEvents(polygon, events);
-  return null;
-}
+export const Polygon = defineShape<PolygonProps, WWPolygon>(
+  'Polygon',
+  createPolygon,
+  updatePolygon,
+);
 
 /** @category Shapes */
 export type SurfacePolylineProps = SurfacePolylineOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function SurfacePolyline(props: SurfacePolylineProps) {
-  const [events, options] = splitShapeProps(props);
-  const shape = useRenderable(createSurfacePolyline, updateSurfacePolyline, options);
-  useShapeEvents(shape, events);
-  return null;
-}
+export const SurfacePolyline = defineShape<SurfacePolylineProps, WWSurfacePolyline>(
+  'SurfacePolyline',
+  createSurfacePolyline,
+  updateSurfacePolyline,
+);
 
 /** @category Shapes */
 export type SurfacePolygonProps = SurfacePolygonOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function SurfacePolygon(props: SurfacePolygonProps) {
-  const [events, options] = splitShapeProps(props);
-  const shape = useRenderable(createSurfacePolygon, updateSurfacePolygon, options);
-  useShapeEvents(shape, events);
-  return null;
-}
+export const SurfacePolygon = defineShape<SurfacePolygonProps, WWSurfacePolygon>(
+  'SurfacePolygon',
+  createSurfacePolygon,
+  updateSurfacePolygon,
+);
 
 /** @category Shapes */
 export type SurfaceCircleProps = SurfaceCircleOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function SurfaceCircle(props: SurfaceCircleProps) {
-  const [events, options] = splitShapeProps(props);
-  const shape = useRenderable(createSurfaceCircle, updateSurfaceCircle, options);
-  useShapeEvents(shape, events);
-  return null;
-}
+export const SurfaceCircle = defineShape<SurfaceCircleProps, WWSurfaceCircle>(
+  'SurfaceCircle',
+  createSurfaceCircle,
+  updateSurfaceCircle,
+);
 
 /** @category Shapes */
 export type GeographicTextProps = GeographicTextOptions & ShapeEventProps;
 
 /** @category Shapes */
-export function GeographicText(props: GeographicTextProps) {
-  const [events, options] = splitShapeProps(props);
-  const text = useRenderable(createGeographicText, updateGeographicText, options);
-  useShapeEvents(text, events);
-  return null;
-}
+export const GeographicText = defineShape<GeographicTextProps, WWGeographicText>(
+  'GeographicText',
+  createGeographicText,
+  updateGeographicText,
+);
