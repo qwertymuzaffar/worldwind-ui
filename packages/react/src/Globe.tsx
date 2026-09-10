@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react';
 import {
   GlobeController,
   ShapeEventRegistry,
@@ -37,6 +37,90 @@ function usePickSubscription(globe: GlobeController | null, type: PickEventType,
   }, [globe, type, active, latest]);
 }
 
+/** What the globe is created with: read once, at mount, from the latest props. */
+interface GlobeInit {
+  options: GlobeOptions;
+  loadOptions?: LoadWorldWindOptions;
+  onReady?: (globe: GlobeController) => void;
+  onError?: (error: unknown) => void;
+}
+
+/**
+ * Creates the globe in the host element once and destroys it on unmount. A creation that
+ * resolves after unmount is destroyed straight away; a rejection surfaces as `error`.
+ */
+function useGlobeController(
+  hostRef: RefObject<HTMLDivElement | null>,
+  init: GlobeInit,
+): { value: GlobeContextValue | null; error: unknown } {
+  const latest = useLatest(init);
+  const [value, setValue] = useState<GlobeContextValue | null>(null);
+  const [error, setError] = useState<unknown>(null);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+    let cancelled = false;
+    let controller: GlobeController | null = null;
+    let registry: ShapeEventRegistry | null = null;
+    const { options, loadOptions } = latest.current;
+
+    GlobeController.create(host, options, loadOptions).then(
+      (globe) => {
+        if (cancelled) {
+          globe.destroy();
+          return;
+        }
+        controller = globe;
+        registry = new ShapeEventRegistry(globe);
+        setValue({ globe, shapeEvents: registry });
+        latest.current.onReady?.(globe);
+      },
+      (reason: unknown) => {
+        if (cancelled) return;
+        setError(reason);
+        latest.current.onError?.(reason);
+      },
+    );
+
+    return () => {
+      cancelled = true;
+      registry?.destroy();
+      controller?.destroy();
+      setValue(null);
+    };
+  }, [hostRef, latest]);
+
+  return { value, error };
+}
+
+/** Switches the live globe's projection whenever the prop changes. */
+function useProjectionSync(globe: GlobeController | null, projection: ProjectionKind | undefined) {
+  useEffect(() => {
+    if (globe && projection && globe.projection !== projection) globe.setProjection(projection);
+  }, [globe, projection]);
+}
+
+/** The globe-wide pick handlers; each subscription is active only while its prop is set. */
+function usePickHandlers(
+  globe: GlobeController | null,
+  { onClick, onDoubleClick, onHover }: Pick<GlobeProps, 'onClick' | 'onDoubleClick' | 'onHover'>,
+) {
+  usePickSubscription(globe, 'click', onClick);
+  usePickSubscription(globe, 'dblclick', onDoubleClick);
+  usePickSubscription(globe, 'hover', onHover);
+}
+
+function ErrorPanel({ message }: { message: string }) {
+  return (
+    <div className="wwui-overlay">
+      <div className="wwui-panel wwui-panel--top-left" role="alert">
+        {message}
+      </div>
+    </div>
+  );
+}
+
 /**
  * Renders a WorldWind globe. Creation options (`layers`, `view`, `elevation`, ...) apply on
  * mount; `projection` and the event handlers are reactive. Children render inside an overlay
@@ -71,53 +155,11 @@ export function Globe(props: GlobeProps) {
   } = props;
 
   const hostRef = useRef<HTMLDivElement>(null);
-  const [value, setValue] = useState<GlobeContextValue | null>(null);
-  const [error, setError] = useState<unknown>(null);
-  const latest = useLatest({ options: { ...creationOptions, projection }, loadOptions, onReady, onError });
-
-  useEffect(() => {
-    const host = hostRef.current;
-    if (!host) return;
-    let cancelled = false;
-    let controller: GlobeController | null = null;
-    let registry: ShapeEventRegistry | null = null;
-    const { options, loadOptions } = latest.current;
-
-    GlobeController.create(host, options, loadOptions).then(
-      (globe) => {
-        if (cancelled) {
-          globe.destroy();
-          return;
-        }
-        controller = globe;
-        registry = new ShapeEventRegistry(globe);
-        setValue({ globe, shapeEvents: registry });
-        latest.current.onReady?.(globe);
-      },
-      (reason: unknown) => {
-        if (cancelled) return;
-        setError(reason);
-        latest.current.onError?.(reason);
-      },
-    );
-
-    return () => {
-      cancelled = true;
-      registry?.destroy();
-      controller?.destroy();
-      setValue(null);
-    };
-  }, [latest]);
-
+  const options = { ...creationOptions, projection };
+  const { value, error } = useGlobeController(hostRef, { options, loadOptions, onReady, onError });
   const globe = value?.globe ?? null;
-
-  useEffect(() => {
-    if (globe && projection && globe.projection !== projection) globe.setProjection(projection);
-  }, [globe, projection]);
-
-  usePickSubscription(globe, 'click', onClick);
-  usePickSubscription(globe, 'dblclick', onDoubleClick);
-  usePickSubscription(globe, 'hover', onHover);
+  useProjectionSync(globe, projection);
+  usePickHandlers(globe, { onClick, onDoubleClick, onHover });
 
   const message = error instanceof Error ? error.message : error != null ? String(error) : null;
 
@@ -131,13 +173,7 @@ export function Globe(props: GlobeProps) {
       ) : fallback != null && message == null ? (
         <div className="wwui-overlay">{fallback}</div>
       ) : null}
-      {message != null ? (
-        <div className="wwui-overlay">
-          <div className="wwui-panel wwui-panel--top-left" role="alert">
-            {message}
-          </div>
-        </div>
-      ) : null}
+      {message != null ? <ErrorPanel message={message} /> : null}
     </div>
   );
 }
