@@ -31,23 +31,47 @@ import {
 import { useGlobe } from './context';
 import { useLatest } from './internal/utils';
 
-function useCameraStore(globe: GlobeController) {
-  return useMemo(
-    () => ({
-      subscribe: (notify: () => void) => globe.camera.subscribe(() => notify()),
-      getSnapshot: () => globe.camera.snapshot(),
-    }),
-    [globe],
-  );
+/** A subscribe/getSnapshot pair in the shape useSyncExternalStore takes. */
+interface ExternalStore<S> {
+  subscribe: (notify: () => void) => () => void;
+  getSnapshot: () => S;
 }
+
+/**
+ * Subscribes to one of the globe's stores. `makeStore` builds the store once per globe, so it
+ * must be a stable function (module level), not an inline closure.
+ */
+function useGlobeStore<S>(makeStore: (globe: GlobeController) => ExternalStore<S>): S {
+  const globe = useGlobe();
+  const store = useMemo(() => makeStore(globe), [globe, makeStore]);
+  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+}
+
+/** The state of a tool the globe effect has yet to create: `idle` until it exists. */
+function useToolState<S>(
+  tool: { subscribe(listener: (state: S) => void): () => void; readonly state: S } | null,
+  idle: S,
+): S {
+  const store = useMemo<ExternalStore<S>>(
+    () => ({
+      subscribe: (notify) => (tool ? tool.subscribe(() => notify()) : () => {}),
+      getSnapshot: () => (tool ? tool.state : idle),
+    }),
+    [tool, idle],
+  );
+  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+}
+
+const cameraStore = (globe: GlobeController): ExternalStore<CameraState> => ({
+  subscribe: (notify) => globe.camera.subscribe(() => notify()),
+  getSnapshot: () => globe.camera.snapshot(),
+});
 
 /** The camera state, updated after every frame in which it changed.
  * @category Hooks
  */
 export function useCameraState(): CameraState {
-  const globe = useGlobe();
-  const store = useCameraStore(globe);
-  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  return useGlobeStore(cameraStore);
 }
 
 /** @category Hooks */
@@ -93,16 +117,13 @@ export function useCamera(): UseCameraResult {
  * @category Hooks
  */
 export function useLayers(): readonly WWLayer[] {
-  const globe = useGlobe();
-  const store = useMemo(
-    () => ({
-      subscribe: (notify: () => void) => globe.layers.subscribe(() => notify()),
-      getSnapshot: () => globe.layers.all,
-    }),
-    [globe],
-  );
-  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  return useGlobeStore(layersStore);
 }
+
+const layersStore = (globe: GlobeController): ExternalStore<readonly WWLayer[]> => ({
+  subscribe: (notify) => globe.layers.subscribe(() => notify()),
+  getSnapshot: () => globe.layers.all,
+});
 
 /** Subscribes to globe-wide click, double-click or hover picks.
  * @category Hooks
@@ -209,16 +230,13 @@ export function useLayer<L extends WWLayer>(
  * @category Hooks
  */
 export function useProjection(): ProjectionKind {
-  const globe = useGlobe();
-  const store = useMemo(
-    () => ({
-      subscribe: (notify: () => void) => globe.onProjectionChange(() => notify()),
-      getSnapshot: () => globe.projection,
-    }),
-    [globe],
-  );
-  return useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  return useGlobeStore(projectionStore);
 }
+
+const projectionStore = (globe: GlobeController): ExternalStore<ProjectionKind> => ({
+  subscribe: (notify) => globe.onProjectionChange(() => notify()),
+  getSnapshot: () => globe.projection,
+});
 
 /** @category Hooks */
 export interface UseMeasureToolResult {
@@ -256,14 +274,7 @@ export function useMeasureTool(options: MeasureToolOptions = {}): UseMeasureTool
     };
   }, [globe, latest]);
 
-  const store = useMemo(
-    () => ({
-      subscribe: (notify: () => void) => (tool ? tool.subscribe(() => notify()) : () => {}),
-      getSnapshot: () => (tool ? tool.state : IDLE_MEASUREMENT),
-    }),
-    [tool],
-  );
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  const state = useToolState(tool, IDLE_MEASUREMENT);
 
   return useMemo(
     () => ({
@@ -352,14 +363,7 @@ export function useDrawTool(options: DrawToolOptions = {}): UseDrawToolResult {
     };
   }, [globe, latest]);
 
-  const store = useMemo(
-    () => ({
-      subscribe: (notify: () => void) => (tool ? tool.subscribe(() => notify()) : () => {}),
-      getSnapshot: () => (tool ? tool.state : IDLE_DRAW),
-    }),
-    [tool],
-  );
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  const state = useToolState(tool, IDLE_DRAW);
 
   return useMemo(
     () => ({
