@@ -1,20 +1,20 @@
-import { pushpinUrl, whiteDotUrl } from './assets';
+import { whiteDotUrl } from './assets';
+import {
+  clean,
+  DRAW_MODES,
+  samePoint,
+  strategyForGeometry,
+  type DrawBody,
+  type DrawContext,
+  type ResolvedDrawOptions,
+} from './draw-modes';
 import { createEmitter, type Unsubscribe } from './events';
 import type { LatLonAlt } from './geo';
 import type { GlobeController } from './globe';
 import { markInternalLayer } from './layers';
 import { pickAt, type PickEvent, type PickedItem } from './picking';
-import {
-  createPlacemark,
-  createSurfacePolygon,
-  createSurfacePolyline,
-  updatePlacemark,
-  updateSurfacePolygon,
-  updateSurfacePolyline,
-  type PathType,
-  type ShapeStyle,
-} from './shapes';
-import type { WWPlacemark, WWRenderable, WWRenderableLayer, WWSurfacePolygon, WWSurfacePolyline } from './worldwind-types';
+import { createPlacemark, updatePlacemark, type PathType, type ShapeStyle } from './shapes';
+import type { WWPlacemark, WWRenderable, WWRenderableLayer } from './worldwind-types';
 
 /** @category Tools */
 export type DrawMode = 'point' | 'line' | 'polygon';
@@ -102,15 +102,8 @@ export interface DrawFeatureInput {
  */
 export const MIN_DRAW_VERTICES: Record<DrawMode, number> = { point: 1, line: 2, polygon: 3 };
 
-const DEFAULT_LINE: ShapeStyle = { stroke: '#f97316', strokeWidth: 3 };
-const DEFAULT_POLYGON: ShapeStyle = { fill: 'rgba(249, 115, 22, 0.25)', stroke: '#f97316', strokeWidth: 2 };
-const DEFAULT_SELECTED: ShapeStyle = { stroke: '#fde047' };
-const SAME_POINT = 1e-9;
-
-interface Rendered {
+interface Rendered extends DrawBody {
   type: DrawMode;
-  shape: WWSurfacePolyline | WWSurfacePolygon | null;
-  marker: WWPlacemark | null;
   handles: WWPlacemark[];
 }
 
@@ -119,17 +112,10 @@ interface Hit {
   vertex: number | null;
 }
 
-function clean(position: LatLonAlt): LatLonAlt {
-  return { latitude: position.latitude, longitude: position.longitude, altitude: position.altitude ?? 0 };
-}
-
-function samePoint(a: LatLonAlt, b: LatLonAlt): boolean {
-  return Math.abs(a.latitude - b.latitude) < SAME_POINT && Math.abs(a.longitude - b.longitude) < SAME_POINT;
-}
-
 function withoutTrailingDuplicate(points: readonly LatLonAlt[]): LatLonAlt[] {
   const result = points.slice();
-  while (result.length >= 2 && samePoint(result[result.length - 1]!, result[result.length - 2]!)) result.pop();
+  while (result.length >= 2 && samePoint(result[result.length - 1]!, result[result.length - 2]!))
+    result.pop();
   return result;
 }
 
@@ -153,14 +139,11 @@ export class DrawTool {
   readonly layer: WWRenderableLayer;
 
   private readonly emitter = createEmitter<DrawState>();
-  private readonly options: Required<
-    Pick<DrawToolOptions, 'pathType' | 'pointScale' | 'handleScale' | 'editable' | 'finishOnDoubleClick' | 'keyboard' | 'idPrefix'>
-  > &
-    DrawToolOptions;
+  private readonly options: ResolvedDrawOptions;
   private readonly rendered = new Map<string, Rendered>();
   private readonly objectIndex = new Map<unknown, Hit>();
   private readonly cleanups: Unsubscribe[] = [];
-  private draftShape: WWSurfacePolyline | WWSurfacePolygon | null = null;
+  private draftShape: DrawBody['shape'] = null;
   private draftHandles: WWPlacemark[] = [];
   private mode: DrawMode | null = null;
   private draft: LatLonAlt[] = [];
@@ -177,7 +160,9 @@ export class DrawTool {
     options: DrawToolOptions = {},
   ) {
     // Adapters pass unset inputs as explicit undefined, which must not override the defaults.
-    const given = Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined)) as DrawToolOptions;
+    const given = Object.fromEntries(
+      Object.entries(options).filter(([, value]) => value !== undefined),
+    ) as DrawToolOptions;
     this.options = {
       pathType: 'greatCircle',
       pointScale: 1,
@@ -188,10 +173,13 @@ export class DrawTool {
       idPrefix: 'feature-',
       ...given,
     };
-    this.layer = markInternalLayer(globe.addRenderableLayer(options.layerName ?? 'Drawings', { pickEnabled: true }));
+    this.layer = markInternalLayer(
+      globe.addRenderableLayer(options.layerName ?? 'Drawings', { pickEnabled: true }),
+    );
     this.snapshot = this.buildState();
     this.cleanups.push(globe.on('click', (event) => this.onClick(event)));
-    if (this.options.finishOnDoubleClick) this.cleanups.push(globe.on('dblclick', () => this.onDoubleClick()));
+    if (this.options.finishOnDoubleClick)
+      this.cleanups.push(globe.on('dblclick', () => this.onDoubleClick()));
     if (this.options.editable) this.cleanups.push(this.attachDragging());
     if (this.options.keyboard) this.cleanups.push(this.attachKeyboard());
   }
@@ -221,7 +209,7 @@ export class DrawTool {
   /** Completes the line or polygon being drawn, when it has enough vertices. */
   finish(): DrawFeature | null {
     const mode = this.mode;
-    if (!mode || mode === 'point') return null;
+    if (!mode || !DRAW_MODES[mode].drafts) return null;
     const positions = withoutTrailingDuplicate(this.draft);
     if (positions.length < MIN_DRAW_VERTICES[mode]) return null;
     this.discardDraft();
@@ -254,13 +242,20 @@ export class DrawTool {
   }
 
   /** Replaces a feature's positions or properties. */
-  update(id: string, changes: { positions?: readonly LatLonAlt[]; properties?: Record<string, unknown> }): void {
+  update(
+    id: string,
+    changes: { positions?: readonly LatLonAlt[]; properties?: Record<string, unknown> },
+  ): void {
     const index = this.features.findIndex((feature) => feature.id === id);
     if (index === -1) return;
     const current = this.features[index]!;
     const positions = changes.positions ? changes.positions.map(clean) : current.positions;
     if (positions.length < MIN_DRAW_VERTICES[current.type]) return;
-    const next: DrawFeature = { ...current, positions, properties: changes.properties ?? current.properties };
+    const next: DrawFeature = {
+      ...current,
+      positions,
+      properties: changes.properties ?? current.properties,
+    };
     this.features = this.features.map((feature) => (feature.id === id ? next : feature));
     this.renderFeature(next);
     this.globe.redraw();
@@ -269,7 +264,10 @@ export class DrawTool {
 
   select(id: string | null, vertex: number | null = null): void {
     const feature = id ? this.find(id) : null;
-    this.setSelection(feature ? feature.id : null, feature && vertex !== null && vertex < feature.positions.length ? vertex : null);
+    this.setSelection(
+      feature ? feature.id : null,
+      feature && vertex !== null && vertex < feature.positions.length ? vertex : null,
+    );
     this.publish();
   }
 
@@ -278,10 +276,7 @@ export class DrawTool {
     if (!feature) return false;
     this.unrender(id);
     this.features = this.features.filter((f) => f.id !== id);
-    if (this.selectedId === id) {
-      this.selectedId = null;
-      this.selectedVertex = null;
-    }
+    if (this.selectedId === id) this.clearSelection();
     this.globe.redraw();
     this.publish();
     return true;
@@ -291,7 +286,10 @@ export class DrawTool {
   removeSelected(): void {
     const feature = this.selectedId ? this.find(this.selectedId) : null;
     if (!feature) return;
-    if (this.selectedVertex !== null && feature.positions.length > MIN_DRAW_VERTICES[feature.type]) {
+    if (
+      this.selectedVertex !== null &&
+      feature.positions.length > MIN_DRAW_VERTICES[feature.type]
+    ) {
       const positions = feature.positions.filter((_, i) => i !== this.selectedVertex);
       this.selectedVertex = null;
       this.update(feature.id, { positions });
@@ -305,8 +303,7 @@ export class DrawTool {
     this.discardDraft();
     for (const id of Array.from(this.rendered.keys())) this.unrender(id);
     this.features = [];
-    this.selectedId = null;
-    this.selectedVertex = null;
+    this.clearSelection();
     this.globe.redraw();
     this.publish();
   }
@@ -325,13 +322,12 @@ export class DrawTool {
     return {
       type: 'FeatureCollection',
       features: this.features.map((feature) => {
-        const coordinates = feature.positions.map((p) => [p.longitude, p.latitude, p.altitude ?? 0]);
-        const geometry: DrawGeoJsonGeometry =
-          feature.type === 'point'
-            ? { type: 'Point', coordinates: coordinates[0]! }
-            : feature.type === 'line'
-              ? { type: 'LineString', coordinates }
-              : { type: 'Polygon', coordinates: [[...coordinates, coordinates[0]!]] };
+        const coordinates = feature.positions.map((p) => [
+          p.longitude,
+          p.latitude,
+          p.altitude ?? 0,
+        ]);
+        const geometry = DRAW_MODES[feature.type].toGeometry(coordinates);
         return { type: 'Feature', id: feature.id, properties: { ...feature.properties }, geometry };
       }),
     };
@@ -343,22 +339,13 @@ export class DrawTool {
     const added: DrawFeature[] = [];
     for (const feature of collection.features ?? []) {
       const geometry = feature.geometry;
-      if (!geometry) continue;
-      const toPositions = (ring: number[][]) =>
-        ring
-          .filter((c) => Array.isArray(c) && c.length >= 2 && Number.isFinite(c[0]) && Number.isFinite(c[1]))
-          .map(([longitude, latitude, altitude]) => ({ latitude: latitude!, longitude: longitude!, altitude: Number.isFinite(altitude) ? altitude! : 0 }));
-      let input: DrawFeatureInput | null = null;
-      if (geometry.type === 'Point') {
-        input = { type: 'point', positions: toPositions([geometry.coordinates as number[]]) };
-      } else if (geometry.type === 'LineString') {
-        input = { type: 'line', positions: toPositions(geometry.coordinates as number[][]) };
-      } else if (geometry.type === 'Polygon') {
-        const ring = toPositions(((geometry.coordinates as number[][][])[0] ?? []) as number[][]);
-        if (ring.length >= 2 && samePoint(ring[0]!, ring[ring.length - 1]!)) ring.pop();
-        input = { type: 'polygon', positions: ring };
-      }
-      if (!input || input.positions.length < MIN_DRAW_VERTICES[input.type]) continue;
+      const strategy = geometry ? strategyForGeometry(geometry.type) : undefined;
+      if (!geometry || !strategy) continue;
+      const input: DrawFeatureInput = {
+        type: strategy.mode,
+        positions: strategy.fromCoordinates(geometry.coordinates),
+      };
+      if (input.positions.length < MIN_DRAW_VERTICES[input.type]) continue;
       input.properties = { ...(feature.properties ?? {}) };
       if (feature.id !== undefined && !this.find(String(feature.id))) input.id = String(feature.id);
       added.push(this.insert(input));
@@ -382,7 +369,9 @@ export class DrawTool {
   private insert(input: DrawFeatureInput): DrawFeature {
     const positions = input.positions.map(clean);
     if (positions.length < MIN_DRAW_VERTICES[input.type]) {
-      throw new Error(`worldwind-kit: a ${input.type} needs at least ${MIN_DRAW_VERTICES[input.type]} position(s)`);
+      throw new Error(
+        `worldwind-kit: a ${input.type} needs at least ${MIN_DRAW_VERTICES[input.type]} position(s)`,
+      );
     }
     let id = input.id ?? `${this.options.idPrefix}${this.nextId}`;
     while (this.find(id)) {
@@ -390,7 +379,12 @@ export class DrawTool {
       id = `${this.options.idPrefix}${this.nextId}`;
     }
     if (id === `${this.options.idPrefix}${this.nextId}`) this.nextId += 1;
-    const feature: DrawFeature = { id, type: input.type, positions, properties: { ...(input.properties ?? {}) } };
+    const feature: DrawFeature = {
+      id,
+      type: input.type,
+      positions,
+      properties: { ...(input.properties ?? {}) },
+    };
     this.features = [...this.features, feature];
     this.renderFeature(feature);
     this.globe.redraw();
@@ -402,8 +396,8 @@ export class DrawTool {
     if (this.mode) {
       if (!event.position) return;
       const position = clean(event.position);
-      if (this.mode === 'point') {
-        const feature = this.insert({ type: 'point', positions: [position] });
+      if (!DRAW_MODES[this.mode].drafts) {
+        const feature = this.insert({ type: this.mode, positions: [position] });
         this.setSelection(feature.id, null);
         this.publish();
         return;
@@ -420,7 +414,7 @@ export class DrawTool {
   }
 
   private onDoubleClick(): void {
-    if (this.mode !== 'line' && this.mode !== 'polygon') return;
+    if (!this.mode || !DRAW_MODES[this.mode].drafts) return;
     // WorldWind reports two quick clicks as a double-click even when they are far apart; only a
     // double-click on one spot (both clicks added the same vertex) finishes the shape.
     const count = this.draft.length;
@@ -441,43 +435,52 @@ export class DrawTool {
     const downType = pointer ? 'pointerdown' : 'mousedown';
     const moveType = pointer ? 'pointermove' : 'mousemove';
     const upTypes = pointer ? ['pointerup', 'pointercancel'] : ['mouseup'];
-    const wwd = this.globe.wwd;
 
     const onDown = (event: PointerEvent | MouseEvent) => {
       if (this.dragging) return;
       if (event.button !== undefined && event.button !== 0) return;
       if (typeof event.clientX !== 'number') return;
-      const hit = this.hit(pickAt(wwd, event.clientX, event.clientY).items);
+      const hit = this.hit(pickAt(this.globe.wwd, event.clientX, event.clientY).items);
       const feature = hit ? this.find(hit.id) : undefined;
       if (!hit || !feature) return;
-      const vertex = feature.type === 'point' ? 0 : hit.vertex;
-      // Lines and polygons are dragged by their handles, which exist once the feature is selected.
+      const vertex = DRAW_MODES[feature.type].dragVertex(hit);
       if (vertex === null) return;
       // Claims the gesture: WorldWind's navigator ignores a press whose default was prevented.
       event.preventDefault();
-      this.setSelection(feature.id, vertex);
-      this.dragging = true;
-      this.publish();
-
-      const onMove = (move: PointerEvent | MouseEvent) => {
-        const position = pickAt(wwd, move.clientX, move.clientY, { terrainOnly: true }).position;
-        if (position) this.moveVertex(feature.id, vertex, position);
-      };
-      const onUp = () => {
-        window.removeEventListener(moveType, onMove);
-        for (const type of upTypes) window.removeEventListener(type, onUp);
-        this.endDrag = null;
-        this.dragging = false;
-        const current = this.find(feature.id);
-        if (current) this.renderFeature(current);
-        this.globe.redraw();
-        this.publish();
-      };
-      window.addEventListener(moveType, onMove);
-      for (const type of upTypes) window.addEventListener(type, onUp);
-      this.endDrag = onUp;
+      this.beginDrag(feature.id, vertex, moveType, upTypes);
     };
     return this.globe.addEventListener(downType, onDown);
+  }
+
+  /** Follows the pointer over the terrain until it is released, then re-renders the feature. */
+  private beginDrag(
+    id: string,
+    vertex: number,
+    moveType: 'pointermove' | 'mousemove',
+    upTypes: string[],
+  ): void {
+    this.setSelection(id, vertex);
+    this.dragging = true;
+    this.publish();
+
+    const wwd = this.globe.wwd;
+    const onMove = (move: PointerEvent | MouseEvent) => {
+      const position = pickAt(wwd, move.clientX, move.clientY, { terrainOnly: true }).position;
+      if (position) this.moveVertex(id, vertex, position);
+    };
+    const onUp = () => {
+      window.removeEventListener(moveType, onMove);
+      for (const type of upTypes) window.removeEventListener(type, onUp);
+      this.endDrag = null;
+      this.dragging = false;
+      const current = this.find(id);
+      if (current) this.renderFeature(current);
+      this.globe.redraw();
+      this.publish();
+    };
+    window.addEventListener(moveType, onMove);
+    for (const type of upTypes) window.addEventListener(type, onUp);
+    this.endDrag = onUp;
   }
 
   private moveVertex(id: string, vertex: number, position: LatLonAlt): void {
@@ -486,16 +489,11 @@ export class DrawTool {
     const positions = feature.positions.map((p, i) => (i === vertex ? clean(position) : p));
     const next: DrawFeature = { ...feature, positions };
     this.features = this.features.map((f) => (f.id === id ? next : f));
-    const ww = this.globe.worldWind;
     const rendered = this.rendered.get(id);
     if (rendered) {
-      if (rendered.marker) updatePlacemark(ww, rendered.marker, { position: positions[0] });
-      if (rendered.shape) {
-        if (next.type === 'line') updateSurfacePolyline(ww, rendered.shape as WWSurfacePolyline, { locations: positions });
-        else updateSurfacePolygon(ww, rendered.shape as WWSurfacePolygon, { boundaries: positions });
-      }
+      DRAW_MODES[next.type].moveBody(this.context, rendered, positions);
       const handle = rendered.handles[vertex];
-      if (handle) updatePlacemark(ww, handle, { position: positions[vertex] });
+      if (handle) updatePlacemark(this.globe.worldWind, handle, { position: positions[vertex] });
     }
     this.globe.redraw();
     this.publish();
@@ -540,70 +538,65 @@ export class DrawTool {
     this.globe.redraw();
   }
 
+  private clearSelection(): void {
+    this.selectedId = null;
+    this.selectedVertex = null;
+  }
+
+  private get context(): DrawContext {
+    return { worldWind: this.globe.worldWind, options: this.options };
+  }
+
   private renderFeature(feature: DrawFeature): void {
-    const ww = this.globe.worldWind;
+    const strategy = DRAW_MODES[feature.type];
     const selected = feature.id === this.selectedId;
     const positions = feature.positions.slice();
-    const style: ShapeStyle | null =
-      feature.type === 'point'
-        ? null
-        : {
-            ...(feature.type === 'line' ? DEFAULT_LINE : DEFAULT_POLYGON),
-            ...(feature.type === 'line' ? this.options.line : this.options.polygon),
-            ...(selected ? { ...DEFAULT_SELECTED, ...this.options.selected } : {}),
-          };
-    const pointScale = this.options.pointScale * (selected ? 1.3 : 1);
     let rendered = this.rendered.get(feature.id);
     if (rendered && rendered.type === feature.type) {
       // Update in place so picked objects stay valid across selection and dragging.
-      for (const handle of rendered.handles) {
-        this.layer.removeRenderable(handle);
-        this.objectIndex.delete(handle);
-      }
-      rendered.handles = [];
-      if (rendered.marker) updatePlacemark(ww, rendered.marker, { position: positions[0], imageScale: pointScale });
-      if (rendered.shape && style) {
-        if (feature.type === 'line') updateSurfacePolyline(ww, rendered.shape as WWSurfacePolyline, { locations: positions, ...style });
-        else updateSurfacePolygon(ww, rendered.shape as WWSurfacePolygon, { boundaries: positions, ...style });
-      }
+      this.removeHandles(rendered);
+      strategy.updateBody(this.context, rendered, positions, selected);
     } else {
       this.unrender(feature.id);
-      rendered = { type: feature.type, shape: null, marker: null, handles: [] };
-      if (feature.type === 'point') {
-        rendered.marker = createPlacemark(ww, {
-          position: positions[0]!,
-          imageSource: this.options.pointImage === undefined ? pushpinUrl(ww, 'red') : this.options.pointImage,
-          imageScale: pointScale,
-          altitudeMode: 'clampToGround',
-          userData: { drawFeatureId: feature.id },
-        });
-        this.layer.addRenderable(rendered.marker);
-        this.objectIndex.set(rendered.marker, { id: feature.id, vertex: 0 });
-      } else if (style) {
-        rendered.shape =
-          feature.type === 'line'
-            ? createSurfacePolyline(ww, { locations: positions, pathType: this.options.pathType, ...style, userData: { drawFeatureId: feature.id } })
-            : createSurfacePolygon(ww, { boundaries: positions, pathType: this.options.pathType, ...style, userData: { drawFeatureId: feature.id } });
-        this.layer.addRenderable(rendered.shape);
-        this.objectIndex.set(rendered.shape, { id: feature.id, vertex: null });
-      }
+      rendered = {
+        type: feature.type,
+        handles: [],
+        ...strategy.createBody(this.context, feature, selected),
+      };
+      // A point is picked as its vertex 0; a line or polygon body is picked as a whole.
+      if (rendered.marker) this.track(rendered.marker, { id: feature.id, vertex: 0 });
+      if (rendered.shape) this.track(rendered.shape, { id: feature.id, vertex: null });
       this.rendered.set(feature.id, rendered);
     }
-    if (feature.type !== 'point' && selected && this.options.editable) {
+    if (strategy.vertexHandles && selected && this.options.editable) {
       positions.forEach((position, index) => {
         const handle = this.createHandle(position, index === this.selectedVertex);
-        rendered!.handles.push(handle);
-        this.layer.addRenderable(handle);
-        this.objectIndex.set(handle, { id: feature.id, vertex: index });
+        rendered.handles.push(handle);
+        this.track(handle, { id: feature.id, vertex: index });
       });
     }
+  }
+
+  /** Shows a renderable and remembers which feature (and vertex) a pick on it means. */
+  private track(renderable: WWRenderable, hit: Hit): void {
+    this.layer.addRenderable(renderable);
+    this.objectIndex.set(renderable, hit);
+  }
+
+  private removeHandles(rendered: Rendered): void {
+    for (const handle of rendered.handles) {
+      this.layer.removeRenderable(handle);
+      this.objectIndex.delete(handle);
+    }
+    rendered.handles = [];
   }
 
   private createHandle(position: LatLonAlt, emphasized: boolean): WWPlacemark {
     const ww = this.globe.worldWind;
     return createPlacemark(ww, {
       position,
-      imageSource: this.options.handleImage === undefined ? whiteDotUrl(ww) : this.options.handleImage,
+      imageSource:
+        this.options.handleImage === undefined ? whiteDotUrl(ww) : this.options.handleImage,
       imageScale: this.options.handleScale * (emphasized ? 1.5 : 1),
       imageOffset: { x: 0.5, y: 0.5 },
       altitudeMode: 'clampToGround',
@@ -624,17 +617,12 @@ export class DrawTool {
   }
 
   private renderDraft(): void {
-    const ww = this.globe.worldWind;
     this.clearDraftRenderables();
-    const mode = this.mode;
-    if (!mode || mode === 'point') return;
+    const strategy = this.mode ? DRAW_MODES[this.mode] : null;
+    if (!strategy?.drafts) return;
     if (this.draft.length >= 2) {
-      const style: ShapeStyle = { ...(mode === 'line' ? DEFAULT_LINE : DEFAULT_POLYGON), ...(mode === 'line' ? this.options.line : this.options.polygon) };
-      this.draftShape =
-        mode === 'polygon' && this.draft.length >= 3
-          ? createSurfacePolygon(ww, { boundaries: this.draft, pathType: this.options.pathType, ...style })
-          : createSurfacePolyline(ww, { locations: this.draft, pathType: this.options.pathType, ...style, fill: null });
-      this.layer.addRenderable(this.draftShape);
+      this.draftShape = strategy.createDraftShape(this.context, this.draft);
+      if (this.draftShape) this.layer.addRenderable(this.draftShape);
     }
     for (const position of this.draft) {
       const handle = this.createHandle(position, false);
