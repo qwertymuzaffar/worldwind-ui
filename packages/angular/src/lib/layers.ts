@@ -73,6 +73,12 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
   }));
 
   constructor() {
+    this.attachToGlobe();
+    this.syncOptions();
+  }
+
+  /** Creates the layer once the globe exists and adds it; recreates it when the inputs `create` reads change. */
+  private attachToGlobe(): void {
     effect((onCleanup) => {
       const globe = this.globeHost.globe();
       if (!globe) return;
@@ -105,6 +111,10 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
         this.layer.set(null);
       });
     });
+  }
+
+  /** Pushes the option inputs to the live layer whenever they change. */
+  private syncOptions(): void {
     effect(() => {
       const layer = this.layer();
       const options = this.layerOptions();
@@ -118,6 +128,42 @@ export abstract class WwLayerBase<L extends WWLayer = WWLayer> {
 
   /** Builds the layer, synchronously or from a promise. Signal inputs read here recreate the layer when they change. */
   protected abstract create(globe: GlobeController): L | Promise<L>;
+
+  /**
+   * Loads content into the layer from an effect. `load` runs once the layer
+   * exists and again whenever the signals it reads change, after the layer's
+   * renderables are cleared. A load still in flight is cancelled (its signal
+   * aborted) before the next one starts and on destroy, `loadError` is emitted
+   * only for a load that was not cancelled, and `onLoaded` runs after the globe
+   * redraws.
+   */
+  protected loadInto<T>(
+    load: (context: { globe: GlobeController; layer: L; signal: AbortSignal }) => Promise<T>,
+    onLoaded: (result: T, layer: L) => void,
+  ): void {
+    effect((onCleanup) => {
+      const layer = this.layer();
+      const globe = untracked(this.globeHost.globe);
+      if (!layer || !globe) return;
+      let cancelled = false;
+      const controller = new AbortController();
+      layer.removeAllRenderables();
+      load({ globe, layer, signal: controller.signal }).then(
+        (result) => {
+          if (cancelled) return;
+          globe.redraw();
+          onLoaded(result, layer);
+        },
+        (error: unknown) => {
+          if (!cancelled) this.loadError.emit(error);
+        },
+      );
+      onCleanup(() => {
+        cancelled = true;
+        controller.abort();
+      });
+    });
+  }
 }
 
 /** One of WorldWind's built-in layers: `<ww-layer kind="blue-marble-landsat" />`.
@@ -271,30 +317,11 @@ export class WwGeoJsonLayerComponent extends WwLayerBase<WWRenderableLayer> {
 
   constructor() {
     super();
-    effect((onCleanup) => {
-      const layer = this.layer();
-      const source = this.source();
-      const style = this.featureStyle();
-      const globe = untracked(this.globeHost.globe);
-      if (!layer || !globe) return;
-      let cancelled = false;
-      const controller = new AbortController();
-      layer.removeAllRenderables();
-      loadGeoJson(globe.worldWind, source, layer, { style, signal: controller.signal }).then(
-        () => {
-          if (cancelled) return;
-          globe.redraw();
-          this.loaded.emit(layer);
-        },
-        (error: unknown) => {
-          if (!cancelled) this.loadError.emit(error);
-        },
-      );
-      onCleanup(() => {
-        cancelled = true;
-        controller.abort();
-      });
-    });
+    this.loadInto(
+      ({ globe, layer, signal }) =>
+        loadGeoJson(globe.worldWind, this.source(), layer, { style: this.featureStyle(), signal }),
+      (_result, layer) => this.loaded.emit(layer),
+    );
   }
 
   protected override create(globe: GlobeController): WWRenderableLayer {
@@ -317,27 +344,10 @@ export class WwKmlLayerComponent extends WwLayerBase<WWRenderableLayer> {
 
   constructor() {
     super();
-    effect((onCleanup) => {
-      const layer = this.layer();
-      const url = this.url();
-      const globe = untracked(this.globeHost.globe);
-      if (!layer || !globe) return;
-      let cancelled = false;
-      layer.removeAllRenderables();
-      loadKml(globe.worldWind, url, layer).then(
-        (document) => {
-          if (cancelled) return;
-          globe.redraw();
-          this.loaded.emit(document);
-        },
-        (error: unknown) => {
-          if (!cancelled) this.loadError.emit(error);
-        },
-      );
-      onCleanup(() => {
-        cancelled = true;
-      });
-    });
+    this.loadInto(
+      ({ globe, layer }) => loadKml(globe.worldWind, this.url(), layer),
+      (document) => this.loaded.emit(document),
+    );
   }
 
   protected override create(globe: GlobeController): WWRenderableLayer {

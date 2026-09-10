@@ -36,6 +36,20 @@ class Host {
   kml: unknown = null;
 }
 
+@Component({
+  imports: [WwGlobeComponent, WwGeoJsonLayerComponent],
+  template: `
+    <ww-globe>
+      <ww-geojson-layer [source]="source()" name="Places" (loaded)="loads = loads + 1" (loadError)="errors.push($event)" />
+    </ww-globe>
+  `,
+})
+class SlowSourceHost {
+  readonly source = signal<string | object>('https://example.org/slow.geojson');
+  errors: unknown[] = [];
+  loads = 0;
+}
+
 describe('data layer components', () => {
   it('creates capabilities-based layers, GeoJSON and KML asynchronously', async () => {
     vi.stubGlobal('fetch', vi.fn((url: string) => Promise.resolve({ ok: true, status: 200, text: async () => (url.includes('WMTS') ? wmtsXml : wmsXml) } as Response)));
@@ -74,6 +88,37 @@ describe('data layer components', () => {
       await vi.waitFor(() => expect(fixture.componentInstance.errors.length).toBeGreaterThan(0));
       expect(String((fixture.componentInstance.errors[0] as Error).message)).toMatch(/HTTP 500/);
       expect(wwd.layers.map((l) => l.displayName)).not.toContain('Roads');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('cancels an in-flight GeoJSON load when the source changes and reports only the latest', async () => {
+    let fetchSignal: AbortSignal | null = null;
+    // Like a real fetch, the pending request rejects with AbortError once its signal is aborted.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init?: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            fetchSignal = init?.signal ?? null;
+            fetchSignal?.addEventListener('abort', () => reject(new DOMException('The load was aborted.', 'AbortError')));
+          }),
+      ),
+    );
+    try {
+      const { fixture, wwd } = await mount(SlowSourceHost);
+      await vi.waitFor(() => expect(fetchSignal).not.toBeNull());
+      expect(fixture.componentInstance.loads).toBe(0);
+
+      fixture.componentInstance.source.set({ type: 'FeatureCollection', features: [geojson.features[0]] });
+      await settle(fixture);
+
+      expect(fetchSignal!.aborted).toBe(true);
+      await vi.waitFor(() => expect(fixture.componentInstance.loads).toBe(1));
+      const places = wwd.layers.find((layer) => layer.displayName === 'Places') as FakeRenderableLayer;
+      expect(places.renderables).toHaveLength(1);
+      expect(fixture.componentInstance.errors).toEqual([]);
     } finally {
       vi.unstubAllGlobals();
     }
